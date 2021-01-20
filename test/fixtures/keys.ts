@@ -1,0 +1,4 @@
+export const xpub =
+  'xpub69Ao8UvHcrPLudqUrNo59AfGgEEi3y1JshyCkuFBnZjnx6zT1tJKWz62e2g6MdgXLoiqSHgANwkzGM45XKxY9PQcC7pDaK3SuRL1DH8kqJq';
+export const xprv =
+  'xprv9vBSiyPPnUq3h9m1kMG4n2iY8CQDeWHTWV3bxWqaEECp5JfJULz4yBmYniAW3iJE9381onwJxx7xufcRordF3Y1PZ2dNhCBmye6Sw6NNaGf';

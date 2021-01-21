@@ -2,11 +2,13 @@ import { example as did } from '../fixtures/did';
 import { Agent } from '@/api/Agent';
 import {
   ConfirmPresentationEvent,
-  ConfirmPresentationEventHandler, CredentialConstraints,
-  Presentation, PresentationEventType,
+  ConfirmPresentationEventHandler,
+  CredentialConstraints,
+  Presentation,
+  PresentationEventType,
   PresentationRequest,
 } from '../../src/service/task/subject/Presentation';
-import {Subject} from "../../src/api/Subject";
+import { Subject } from '../../src/api/Subject';
 
 const receiverDID = 'did:dummy:receiver';
 
@@ -20,13 +22,12 @@ describe('Subject flows', () => {
   describe('Presentation Requests', () => {
     const request = {
       verifier: receiverDID,
-      constraints: new CredentialConstraints()
+      constraints: new CredentialConstraints(),
     } as PresentationRequest;
     const presentation = new Presentation();
 
     it('can resolve a presentation request with no confirmation handlers', async () => {
-      const resolveTask = subject
-        .resolvePresentationRequest(request);
+      const resolveTask = subject.resolvePresentationRequest(request);
 
       resolveTask.emit(new ConfirmPresentationEvent(request, presentation));
 
@@ -39,7 +40,10 @@ describe('Subject flows', () => {
       };
       const resolveTask = subject
         .resolvePresentationRequest(request)
-        .on(PresentationEventType.ConfirmPresentation, confirmImmediatelyHandler);
+        .on(
+          PresentationEventType.ConfirmPresentation,
+          confirmImmediatelyHandler
+        );
 
       resolveTask.emit(new ConfirmPresentationEvent(request, presentation));
 

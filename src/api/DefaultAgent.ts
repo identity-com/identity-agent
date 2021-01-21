@@ -11,16 +11,14 @@ import { PrivateKeyCrypto } from '@/service/crypto/PrivateKeyCrypto';
 import { DefaultCryptoModule } from '@/service/crypto/DefaultCryptoModule';
 import { WebStorage } from '@/service/storage/WebStorage';
 import { DefaultTaskMaster } from '@/service/task/TaskMaster';
-import {JWE, JWTVerified} from 'did-jwt';
+import { JWE, JWTVerified } from 'did-jwt';
 import { Task } from '@/service/task/Task';
 import { DummyTask } from '@/service/task/DummyTask';
-import {Subject, Agent, Context, Verifier, Identity} from './internal';
-import nacl from "tweetnacl";
+import { Subject, Agent, Context, Verifier, Identity } from './internal';
+import nacl from 'tweetnacl';
 
-const isIdentity = (identity: DID | Identity):identity is Identity => Object
-  .prototype
-  .hasOwnProperty
-  .call(identity,'did');
+const isIdentity = (identity: DID | Identity): identity is Identity =>
+  Object.prototype.hasOwnProperty.call(identity, 'did');
 
 export class DefaultAgent implements Agent {
   readonly document: DIDDocument;
@@ -58,7 +56,7 @@ export class DefaultAgent implements Agent {
     return this.context.crypto.encrypt(data, recipient);
   }
 
-  decrypt(jwe: JWE):Promise<string> {
+  decrypt(jwe: JWE): Promise<string> {
     return this.context.crypto.decrypt(jwe);
   }
 
@@ -74,7 +72,10 @@ export class DefaultAgent implements Agent {
 
   static for(identity: DID | Identity) {
     if (isIdentity(identity)) {
-      return new DefaultAgent.Builder(identity.did).withKeys(identity.signingKey, identity.encryptionKey)
+      return new DefaultAgent.Builder(identity.did).withKeys(
+        identity.signingKey,
+        identity.encryptionKey
+      );
     }
 
     return new DefaultAgent.Builder(identity);
@@ -91,7 +92,10 @@ export class DefaultAgent implements Agent {
       this.context = {};
     }
 
-    withKeys(signingKey: AsymmetricKeyInput, encryptionKey: nacl.BoxKeyPair): this {
+    withKeys(
+      signingKey: AsymmetricKeyInput,
+      encryptionKey: nacl.BoxKeyPair
+    ): this {
       this.signingKey = normalizePrivateKey(signingKey);
       this.encryptionKey = encryptionKey; // TODO allow other formats e.g. base58
       return this;

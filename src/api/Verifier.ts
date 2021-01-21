@@ -1,7 +1,7 @@
 import { CredentialConstraints } from '@/service/task/subject/Presentation';
 import { Agent, DefaultAgent } from './internal';
-import {DID} from "@/api/DID";
-import {PresentationRequestTask} from "@/service/task/verifier/PresentationRequest";
+import { DID } from '@/api/DID';
+import { PresentationRequestTask } from '@/service/task/verifier/PresentationRequest';
 
 export class Verifier extends DefaultAgent {
   private me: Agent;
@@ -16,10 +16,13 @@ export class Verifier extends DefaultAgent {
     constraints: CredentialConstraints
   ): PresentationRequestTask {
     return this.me.context.taskMaster.register(
-      new PresentationRequestTask({
-        verifier: this.me.did,
-        constraints
-      }, subject)
+      new PresentationRequestTask(
+        {
+          verifier: this.me.did,
+          constraints,
+        },
+        subject
+      )
     );
   }
 }

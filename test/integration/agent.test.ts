@@ -1,7 +1,7 @@
 import { example as did } from '../fixtures/did';
 import { Agent } from '@/api/Agent';
-import * as nacl from "tweetnacl";
-import {dummyEncryptKey} from "../../src/service/did/resolver/StubCache";
+import * as nacl from 'tweetnacl';
+import { dummyEncryptKey } from '../../src/service/did/resolver/StubCache';
 
 const { objectContaining } = expect;
 
@@ -14,7 +14,9 @@ const receiverDID = 'did:dummy:receiver';
 describe('Simple Agent flows', () => {
   describe('Privileged agent', () => {
     it('should communicate signed information via JWT', async () => {
-      const sender = await Agent.for(senderDID).withKeys(dummyXprv, nacl.box.keyPair()).build();
+      const sender = await Agent.for(senderDID)
+        .withKeys(dummyXprv, nacl.box.keyPair())
+        .build();
 
       const message = { hello: 'world' };
       const jwt = await sender.sign(message);
@@ -28,7 +30,9 @@ describe('Simple Agent flows', () => {
 
     it('should encrypt information for a recipient', async () => {
       const sender = await Agent.for(senderDID).build();
-      const receiver = await Agent.for(receiverDID).withKeys(dummyXprv, dummyEncryptKey).build();
+      const receiver = await Agent.for(receiverDID)
+        .withKeys(dummyXprv, dummyEncryptKey)
+        .build();
 
       const message = 'hello world';
 
@@ -36,7 +40,7 @@ describe('Simple Agent flows', () => {
       const decryptedMessage = await receiver.decrypt(encryptedMessage);
 
       expect(decryptedMessage).toEqual(message);
-    })
+    });
   });
 
   describe('Tasks', () => {

@@ -1,7 +1,7 @@
 import { bip32, ECPair } from 'bitcoinjs-lib';
 import { encode, decode } from 'bs58';
-import didJWT, {JWE} from 'did-jwt';
-import { TextDecoder, TextEncoder } from 'util'
+import didJWT, { JWE } from 'did-jwt';
+import { TextDecoder, TextEncoder } from 'util';
 
 import { DID, DIDResolver } from '@/api/DID';
 import {
@@ -12,8 +12,8 @@ import {
   Xprv,
   Xpub,
 } from '@/service/crypto/CryptoModule';
-import {Resolver} from "did-resolver";
-import nacl from "tweetnacl";
+import { Resolver } from 'did-resolver';
+import nacl from 'tweetnacl';
 
 /**
  * Test this via the command line using
@@ -37,7 +37,7 @@ export const xprvToBytes = (xprv: string): Buffer =>
 
 export const createJWT = (
   did: DID,
-  key: Buffer,// TODO switch to using AsymmetricKey object
+  key: Buffer, // TODO switch to using AsymmetricKey object
   payload: Record<string, any>
 ): Promise<string> => {
   const signer = didJWT.SimpleSigner(key.toString('hex'));
@@ -109,22 +109,33 @@ export const generateSignKey = (): AsymmetricKey =>
   ECPair.makeRandom() as AsymmetricKey;
 
 // TODO Unify Key concept with AsymmetricKey
-export const generateEncryptKey = (): nacl.BoxKeyPair =>
-  nacl.box.keyPair();
+export const generateEncryptKey = (): nacl.BoxKeyPair => nacl.box.keyPair();
 
 export const decrypt = async (jwe: JWE, key: nacl.BoxKeyPair) => {
-  const decrypted = await didJWT.decryptJWE(jwe, didJWT.x25519Decrypter(key.secretKey))
-  const decoder = new TextDecoder("utf-8");
-  return decoder.decode(decrypted)
-}
+  const decrypted = await didJWT.decryptJWE(
+    jwe,
+    didJWT.x25519Decrypter(key.secretKey)
+  );
+  const decoder = new TextDecoder('utf-8');
+  return decoder.decode(decrypted);
+};
 
-export const encrypt = async (payload: string, recipient: DID, resolver: DIDResolver) => {
+export const encrypt = async (
+  payload: string,
+  recipient: DID,
+  resolver: DIDResolver
+) => {
   // Remove this 'as resolver' when didJWT supports Resolvable rather than Resolver
-  const didJwtResolver = { resolve: (did: string) => resolver(did as DID) } as Resolver;
+  const didJwtResolver = {
+    resolve: (did: string) => resolver(did as DID),
+  } as Resolver;
 
   const encoder = new TextEncoder(); // always utf-8
   const encoded = encoder.encode(payload);
 
-  const encrypters = await didJWT.resolveX25519Encrypters([recipient], didJwtResolver)
-  return didJWT.createJWE(encoded, encrypters)
-}
+  const encrypters = await didJWT.resolveX25519Encrypters(
+    [recipient],
+    didJwtResolver
+  );
+  return didJWT.createJWE(encoded, encrypters);
+};

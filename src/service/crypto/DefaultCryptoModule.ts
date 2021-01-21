@@ -1,11 +1,12 @@
 import {
   AsymmetricKey,
   CryptoModule,
-  JWT, Key,
+  JWT,
+  Key,
 } from '@/service/crypto/CryptoModule';
-import {JWE, JWTVerified} from 'did-jwt';
+import { JWE, JWTVerified } from 'did-jwt';
 import { DID, DIDResolver } from '@/api/DID';
-import {encrypt, verifyJWT} from '@/lib/crypto/utils';
+import { encrypt, verifyJWT } from '@/lib/crypto/utils';
 
 export class DefaultCryptoModule implements CryptoModule {
   readonly did: DID;

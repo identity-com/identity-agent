@@ -13,8 +13,6 @@ export class Subject extends DefaultAgent {
   }
 
   resolvePresentationRequest(request: PresentationRequest): PresentationTask {
-    return this.me.context.taskMaster.register(
-      new PresentationTask(request)
-    );
+    return this.me.context.taskMaster.register(new PresentationTask(request));
   }
 }

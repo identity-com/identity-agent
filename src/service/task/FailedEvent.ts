@@ -1,5 +1,5 @@
-import {TaskEvent} from "@/service/task/TaskEvent";
-import {CommonEventType} from "@/service/task/EventType";
+import { TaskEvent } from '@/service/task/TaskEvent';
+import { CommonEventType } from '@/service/task/EventType';
 
 export class FailedEvent extends TaskEvent<CommonEventType.Failed> {
   readonly reason: Error;

@@ -2,7 +2,7 @@ import * as utils from '@/lib/crypto/utils';
 import { defaultDIDResolver } from '@/service/did/resolver/Resolver';
 import { example as did } from '../../../fixtures/did';
 import { xpub, xprv } from '../../../fixtures/keys';
-import {dummyEncryptKey} from "../../../../src/service/did/resolver/StubCache";
+import { dummyEncryptKey } from '../../../../src/service/did/resolver/StubCache';
 
 describe('crypto utils', () => {
   describe('xpubToBase58Compressed', () => {
@@ -34,11 +34,11 @@ describe('crypto utils', () => {
   describe('encrypt', () => {
     it('should encrypt data as JWE', async () => {
       const message = 'hello';
-      const jwe = await utils.encrypt(message, did, defaultDIDResolver())
+      const jwe = await utils.encrypt(message, did, defaultDIDResolver());
 
       const decrypted = await utils.decrypt(jwe, dummyEncryptKey);
 
-      expect(decrypted).toEqual(message)
-    })
-  })
+      expect(decrypted).toEqual(message);
+    });
+  });
 });

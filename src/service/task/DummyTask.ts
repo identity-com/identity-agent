@@ -1,6 +1,6 @@
 import { pick } from 'ramda';
-import {DefaultTask} from "@/service/task/DefaultTask";
-import {DoneEvent} from "@/service/task/DoneEvent";
+import { DefaultTask } from '@/service/task/DefaultTask';
+import { DoneEvent } from '@/service/task/DoneEvent';
 
 export class DummyTask extends DefaultTask<string> {
   static readonly TYPE: string = 'DummyTask';
@@ -18,7 +18,10 @@ export class DummyTask extends DefaultTask<string> {
   protected initialize(): void {
     const remainingDelay = this.startTime + this.delay - Date.now();
 
-    setTimeout(() => this.emit(new DoneEvent('ding!')), Math.max(0, remainingDelay))
+    setTimeout(
+      () => this.emit(new DoneEvent('ding!')),
+      Math.max(0, remainingDelay)
+    );
   }
 
   serialize(): Record<string, any> {

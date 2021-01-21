@@ -1,16 +1,16 @@
 import { pick } from 'ramda';
-import {DID} from "@/api/DID";
-import {DefaultTask, passthroughHandler} from "@/service/task/DefaultTask";
+import { DID } from '@/api/DID';
+import { DefaultTask, passthroughHandler } from '@/service/task/DefaultTask';
 
 export type CredentialRequest = {
   verifier: DID;
-  identifier: string
-}
+  identifier: string;
+};
 
 export enum CredentialRequestEventType {
-  UCARequested = "UCARequested",
-  UCARejected = "UCARejected",
-  SignCredential = "SignCredential"
+  UCARequested = 'UCARequested',
+  UCARejected = 'UCARejected',
+  SignCredential = 'SignCredential',
 }
 
 export class CredentialRequestTask extends DefaultTask<void> {
@@ -32,7 +32,11 @@ export class CredentialRequestTask extends DefaultTask<void> {
     // TODO
     this.on(CredentialRequestEventType.UCARequested, passthroughHandler, true);
     this.on(CredentialRequestEventType.UCARejected, passthroughHandler, true);
-    this.on(CredentialRequestEventType.SignCredential, passthroughHandler, true);
+    this.on(
+      CredentialRequestEventType.SignCredential,
+      passthroughHandler,
+      true
+    );
   }
 
   protected initialize(): void {}

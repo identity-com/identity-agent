@@ -1,11 +1,14 @@
-import {DefaultTask} from "@/service/task/DefaultTask";
-import {Presentation, PresentationRequest} from "@/service/task/subject/Presentation";
-import {DID} from "@/api/DID";
-import {TaskEvent} from "@/service/task/TaskEvent";
-import {DoneEvent} from "@/service/task/DoneEvent";
+import { DefaultTask } from '@/service/task/DefaultTask';
+import {
+  Presentation,
+  PresentationRequest,
+} from '@/service/task/subject/Presentation';
+import { DID } from '@/api/DID';
+import { TaskEvent } from '@/service/task/TaskEvent';
+import { DoneEvent } from '@/service/task/DoneEvent';
 
 export enum PresentationRequestEventType {
-  PresentationReceived = "PresentationReceived"
+  PresentationReceived = 'PresentationReceived',
 }
 
 export class PresentationReceivedEvent extends TaskEvent<PresentationRequestEventType.PresentationReceived> {
@@ -18,7 +21,7 @@ export class PresentationReceivedEvent extends TaskEvent<PresentationRequestEven
 }
 
 export class PresentationRequestTask extends DefaultTask<Presentation> {
-  static TYPE = 'PresentationRequestTask'
+  static TYPE = 'PresentationRequestTask';
 
   readonly request?: PresentationRequest;
   readonly subject?: DID;
@@ -32,21 +35,23 @@ export class PresentationRequestTask extends DefaultTask<Presentation> {
 
     const presentationReceivedEventHandler = {
       handle: (event: PresentationReceivedEvent) => {
-        this.emit(new DoneEvent(event.presentation))
+        this.emit(new DoneEvent(event.presentation));
         return Promise.resolve(); // TODO allow void return type
-      }
-    }
+      },
+    };
 
-    this.on(PresentationRequestEventType.PresentationReceived, presentationReceivedEventHandler, true);
+    this.on(
+      PresentationRequestEventType.PresentationReceived,
+      presentationReceivedEventHandler,
+      true
+    );
   }
 
   protected initialize(): void {}
 
-  deserialize(_serialized: Record<string, any>): void {
-  }
+  deserialize(_serialized: Record<string, any>): void {}
 
   serialize(): Record<string, any> {
     return {};
   }
 }
-

@@ -1,10 +1,13 @@
 import { Task } from '@/service/task/Task';
 import { AgentStorage } from '@/service/storage/AgentStorage';
 import { DummyTask } from '@/service/task/DummyTask';
-import {PresentationRequest, PresentationTask} from '@/service/task/subject/Presentation';
-import {CredentialRequestTask} from "@/service/task/subject/CredentialRequest";
-import {PresentationRequestTask} from "@/service/task/verifier/PresentationRequest";
-import {DID} from "@/api/DID";
+import {
+  PresentationRequest,
+  PresentationTask,
+} from '@/service/task/subject/Presentation';
+import { CredentialRequestTask } from '@/service/task/subject/CredentialRequest';
+import { PresentationRequestTask } from '@/service/task/verifier/PresentationRequest';
+import { DID } from '@/api/DID';
 
 const STORAGE_FOLDER = 'tasks';
 
@@ -19,7 +22,10 @@ export interface TaskMaster {
 const taskRegistry: Record<string, () => Task<any>> = {
   [DummyTask.TYPE]: () => new DummyTask(),
   [PresentationTask.TYPE]: () => new PresentationTask(),
-  [PresentationRequestTask.TYPE]: (request?: PresentationRequest, subject?: DID) => new PresentationRequestTask(request, subject),
+  [PresentationRequestTask.TYPE]: (
+    request?: PresentationRequest,
+    subject?: DID
+  ) => new PresentationRequestTask(request, subject),
   [CredentialRequestTask.TYPE]: () => new CredentialRequestTask(),
 };
 

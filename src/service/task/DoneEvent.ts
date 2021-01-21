@@ -1,5 +1,5 @@
-import {TaskEvent} from "@/service/task/TaskEvent";
-import {CommonEventType} from "@/service/task/EventType";
+import { TaskEvent } from '@/service/task/TaskEvent';
+import { CommonEventType } from '@/service/task/EventType';
 
 export class DoneEvent<R> extends TaskEvent<CommonEventType.Done> {
   readonly result: R;

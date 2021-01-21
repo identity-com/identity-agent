@@ -1,24 +1,23 @@
-import {TaskEvent} from '@/service/task/TaskEvent';
-import {EventHandler} from '@/service/task/EventHandler';
+import { TaskEvent } from '@/service/task/TaskEvent';
+import { EventHandler } from '@/service/task/EventHandler';
 import R from 'ramda';
-import {DID} from "@/api/DID";
-import {DefaultTask} from "@/service/task/DefaultTask";
-import {DoneEvent} from "@/service/task/DoneEvent";
+import { DID } from '@/api/DID';
+import { DefaultTask } from '@/service/task/DefaultTask';
+import { DoneEvent } from '@/service/task/DoneEvent';
 
 export class CredentialConstraints {}
 
 export type PresentationRequest = {
   verifier: DID;
-  constraints: CredentialConstraints
-}
+  constraints: CredentialConstraints;
+};
 
 export class Presentation {
   // empty for now
 }
 
-
 export enum PresentationEventType {
-  ConfirmPresentation = "ConfirmPresentation"
+  ConfirmPresentation = 'ConfirmPresentation',
 }
 
 export class PresentationTask extends DefaultTask<void> {
@@ -37,7 +36,9 @@ export class PresentationTask extends DefaultTask<void> {
 
     this.initialize();
 
-    const emitDone = { handle: () => this.emit(new DoneEvent(undefined as void))}
+    const emitDone = {
+      handle: () => this.emit(new DoneEvent(undefined as void)),
+    };
 
     this.on(PresentationEventType.ConfirmPresentation, emitDone, true);
   }

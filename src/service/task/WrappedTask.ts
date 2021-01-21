@@ -16,10 +16,7 @@ export class WrappedTask<T> implements Task<T> {
 
   deserialize(_serialized: Record<string, any>): void {}
 
-  on(
-    _eventType: EventType,
-    _handler: EventHandler<any, EventType>
-  ): this {
+  on(_eventType: EventType, _handler: EventHandler<any, EventType>): this {
     throw new Error('Cannot assign event handlers to a wrapped promise task');
   }
 

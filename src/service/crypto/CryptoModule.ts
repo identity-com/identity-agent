@@ -1,6 +1,6 @@
 import { ECPairInterface } from 'bitcoinjs-lib';
-import {JWE, JWTVerified} from 'did-jwt';
-import {DID} from "@/api/DID";
+import { JWE, JWTVerified } from 'did-jwt';
+import { DID } from '@/api/DID';
 
 export type Xprv = `xprv${string}`;
 export type Xpub = `xprv${string}`;

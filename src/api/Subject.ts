@@ -1,7 +1,7 @@
 import {
   PresentationRequest,
-  PresentationRequestTask,
-} from '@/service/task/subject/PresentationRequest';
+  PresentationTask,
+} from '@/service/task/subject/Presentation';
 import { Agent, DefaultAgent } from './internal';
 
 export class Subject extends DefaultAgent {
@@ -12,11 +12,9 @@ export class Subject extends DefaultAgent {
     this.me = me;
   }
 
-  resolvePresentationRequest(
-    request: PresentationRequest
-  ): PresentationRequestTask {
+  resolvePresentationRequest(request: PresentationRequest): PresentationTask {
     return this.me.context.taskMaster.register(
-      new PresentationRequestTask(request)
+      new PresentationTask(request)
     );
   }
 }

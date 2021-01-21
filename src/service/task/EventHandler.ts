@@ -1,6 +1,7 @@
-import { Task } from '@/service/task/Task';
-import { TaskEvent } from '@/service/task/Event';
+import { TaskEvent } from '@/service/task/TaskEvent';
+import {EventType} from "@/service/task/EventType";
+import {Task} from "@/service/task/Task";
 
-export interface EventHandler<R, T extends TaskEvent<any>> {
-  handle(event: T): Task<R> | Promise<R>;
+export interface EventHandler<R, T extends EventType> {
+  handle(event: TaskEvent<T>): Task<R> | Promise<R>;
 }

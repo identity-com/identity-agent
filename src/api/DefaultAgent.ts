@@ -11,10 +11,16 @@ import { PrivateKeyCrypto } from '@/service/crypto/PrivateKeyCrypto';
 import { DefaultCryptoModule } from '@/service/crypto/DefaultCryptoModule';
 import { WebStorage } from '@/service/storage/WebStorage';
 import { DefaultTaskMaster } from '@/service/task/TaskMaster';
-import { JWTVerified } from 'did-jwt';
+import {JWE, JWTVerified} from 'did-jwt';
 import { Task } from '@/service/task/Task';
 import { DummyTask } from '@/service/task/DummyTask';
-import { Subject, Agent, Context } from './internal';
+import {Subject, Agent, Context, Verifier, Identity} from './internal';
+import nacl from "tweetnacl";
+
+const isIdentity = (identity: DID | Identity):identity is Identity => Object
+  .prototype
+  .hasOwnProperty
+  .call(identity,'did');
 
 export class DefaultAgent implements Agent {
   readonly document: DIDDocument;
@@ -33,6 +39,10 @@ export class DefaultAgent implements Agent {
     return new Subject(this);
   }
 
+  asVerifier(): Verifier {
+    return new Verifier(this);
+  }
+
   // temp
   sign(payload?: Record<string, any>): Promise<JWT> {
     return this.context.crypto.createToken(payload || {});
@@ -41,6 +51,15 @@ export class DefaultAgent implements Agent {
   // temp
   verify(jwt: JWT): Promise<JWTVerified> {
     return this.context.crypto.verifyToken(jwt);
+  }
+
+  // temp
+  encrypt(data: string, recipient: DID): Promise<JWE> {
+    return this.context.crypto.encrypt(data, recipient);
+  }
+
+  decrypt(jwe: JWE):Promise<string> {
+    return this.context.crypto.decrypt(jwe);
   }
 
   // temp
@@ -53,22 +72,28 @@ export class DefaultAgent implements Agent {
     return this.context.taskMaster.allResults();
   }
 
-  static for(did: DID) {
-    return new DefaultAgent.Builder(did);
+  static for(identity: DID | Identity) {
+    if (isIdentity(identity)) {
+      return new DefaultAgent.Builder(identity.did).withKeys(identity.signingKey, identity.encryptionKey)
+    }
+
+    return new DefaultAgent.Builder(identity);
   }
 
   static Builder = class {
     did: DID;
     context: Partial<Context>;
-    key?: AsymmetricKey;
+    signingKey?: AsymmetricKey;
+    encryptionKey?: nacl.BoxKeyPair;
 
     constructor(did: DID) {
       this.did = did;
       this.context = {};
     }
 
-    withKey(key: AsymmetricKeyInput): this {
-      this.key = normalizePrivateKey(key);
+    withKeys(signingKey: AsymmetricKeyInput, encryptionKey: nacl.BoxKeyPair): this {
+      this.signingKey = normalizePrivateKey(signingKey);
+      this.encryptionKey = encryptionKey; // TODO allow other formats e.g. base58
       return this;
     }
 
@@ -76,10 +101,11 @@ export class DefaultAgent implements Agent {
       this.context.storage = new WebStorage();
       this.context.didResolver = defaultDIDResolver(this.context.storage);
 
-      if (this.key) {
+      if (this.signingKey && this.encryptionKey) {
         this.context.crypto = new PrivateKeyCrypto(
           this.did,
-          this.key,
+          this.signingKey,
+          this.encryptionKey,
           this.context.didResolver
         );
       } else {

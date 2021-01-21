@@ -1,12 +1,11 @@
 import {
   AsymmetricKey,
   CryptoModule,
-  JWT,
-  Key,
+  JWT, Key,
 } from '@/service/crypto/CryptoModule';
-import { JWTVerified } from 'did-jwt';
+import {JWE, JWTVerified} from 'did-jwt';
 import { DID, DIDResolver } from '@/api/DID';
-import { verifyJWT } from '@/lib/crypto/utils';
+import {encrypt, verifyJWT} from '@/lib/crypto/utils';
 
 export class DefaultCryptoModule implements CryptoModule {
   readonly did: DID;
@@ -29,11 +28,11 @@ export class DefaultCryptoModule implements CryptoModule {
     throw Error('A private key must be provided to perform this operation');
   }
 
-  decrypt(_data: Buffer): string {
-    throw Error('A private key must be provided to perform this operation');
+  encrypt(data: string, recipient: DID): Promise<JWE> {
+    return encrypt(data, recipient, this.resolver);
   }
 
-  encrypt(_data: string | Buffer): Promise<Buffer> {
+  decrypt(_jwe: JWE): Promise<string> {
     throw Error('A private key must be provided to perform this operation');
   }
 

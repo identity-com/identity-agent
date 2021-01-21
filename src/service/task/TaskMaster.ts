@@ -1,7 +1,10 @@
 import { Task } from '@/service/task/Task';
 import { AgentStorage } from '@/service/storage/AgentStorage';
 import { DummyTask } from '@/service/task/DummyTask';
-import { PresentationRequestTask } from '@/service/task/subject/PresentationRequest';
+import {PresentationRequest, PresentationTask} from '@/service/task/subject/Presentation';
+import {CredentialRequestTask} from "@/service/task/subject/CredentialRequest";
+import {PresentationRequestTask} from "@/service/task/verifier/PresentationRequest";
+import {DID} from "@/api/DID";
 
 const STORAGE_FOLDER = 'tasks';
 
@@ -15,7 +18,9 @@ export interface TaskMaster {
 // to allow for custom tasks
 const taskRegistry: Record<string, () => Task<any>> = {
   [DummyTask.TYPE]: () => new DummyTask(),
-  [PresentationRequestTask.TYPE]: () => new PresentationRequestTask(),
+  [PresentationTask.TYPE]: () => new PresentationTask(),
+  [PresentationRequestTask.TYPE]: (request?: PresentationRequest, subject?: DID) => new PresentationRequestTask(request, subject),
+  [CredentialRequestTask.TYPE]: () => new CredentialRequestTask(),
 };
 
 type SerializedTask = {

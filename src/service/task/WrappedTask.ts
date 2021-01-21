@@ -1,7 +1,6 @@
 import { Task } from '@/service/task/Task';
 import { EventType } from '@/service/task/EventType';
 import { EventHandler } from '@/service/task/EventHandler';
-import { TaskEvent } from '@/service/task/Event';
 import { v4 as uuid } from 'uuid';
 
 export class WrappedTask<T> implements Task<T> {
@@ -19,7 +18,7 @@ export class WrappedTask<T> implements Task<T> {
 
   on(
     _eventType: EventType,
-    _handler: EventHandler<any, TaskEvent<EventType>>
+    _handler: EventHandler<any, EventType>
   ): this {
     throw new Error('Cannot assign event handlers to a wrapped promise task');
   }

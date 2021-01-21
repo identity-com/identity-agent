@@ -9,3 +9,4 @@
 export * from '@/api/Agent';
 export * from '@/api/DefaultAgent';
 export * from '@/api/Subject';
+export * from '@/api/Verifier';

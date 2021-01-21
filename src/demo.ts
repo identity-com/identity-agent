@@ -1,23 +1,25 @@
-import { registerForKey } from '@/service/did/resolver/StubCache';
-import { generateKey } from '@/lib/crypto/utils';
+import { registerForKeys } from '@/service/did/resolver/StubCache';
+import {generateEncryptKey, generateSignKey} from '@/lib/crypto/utils';
 import { defaultDIDResolver } from './service/did/resolver/Resolver';
 import {
   ConfirmPresentationEvent,
   PresentationRequest,
-  PresentationRequestTask,
-} from '@/service/task/subject/PresentationRequest';
+  PresentationTask,
+} from '@/service/task/subject/Presentation';
+import {Identity} from "@/api/internal";
 
-const createDID = () => {
-  const key = generateKey();
-  const did = registerForKey(key);
+const createDID = ():Identity => {
+  const signingKey = generateSignKey();
+  const encryptionKey = generateEncryptKey();
+  const did = registerForKeys(signingKey, encryptionKey);
 
-  return { key, did };
+  return { signingKey, encryptionKey, did };
 };
 
 const resolveDID = defaultDIDResolver();
 
 const resolvePresentationRequestTaskWithDummyCredentials = (
-  task: PresentationRequestTask
+  task: PresentationTask
 ) =>
   task.emit(
     new ConfirmPresentationEvent(task.getRequest() as PresentationRequest, {

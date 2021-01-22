@@ -7,6 +7,8 @@ import {
   PresentationTask,
 } from '@/service/task/subject/Presentation';
 import { Identity } from '@/api/internal';
+import { CommonEventType } from '@/service/task/EventType';
+import { TaskEvent } from '@/service/task/TaskEvent';
 
 const createDID = (): Identity => {
   const signingKey = generateSignKey();
@@ -27,8 +29,15 @@ const resolvePresentationRequestTaskWithDummyCredentials = (
     })
   );
 
+class NewEvent extends TaskEvent<CommonEventType.New> {
+  constructor() {
+    super(CommonEventType.New);
+  }
+}
+
 export {
   createDID,
   resolveDID,
   resolvePresentationRequestTaskWithDummyCredentials,
+  NewEvent,
 };

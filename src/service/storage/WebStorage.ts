@@ -53,7 +53,7 @@ export class WebStorage implements AgentStorage {
         );
     }
 
-    const stringifiedValue = JSON.stringify(value);
+    const stringifiedValue = JSON.stringify(value, null, 1);
 
     this.localStorage.setItem(concatenateKey(key), stringifiedValue);
 

@@ -6,7 +6,7 @@ import {
   StorageValue,
 } from '@/service/storage/AgentStorage';
 import { LocalStorage } from 'node-localstorage';
-import R from 'ramda';
+import { complement, isNil, range } from 'ramda';
 
 const DELIMITER = ':';
 
@@ -75,19 +75,19 @@ export class WebStorage implements AgentStorage {
   findKeys(keyFragment: StorageKey): Promise<StorageKey[]> {
     const concatenatedKeyFragment = concatenateKey(keyFragment);
 
-    const allMatchingKeys = R
+    const allMatchingKeys =
       // iterate through all the keys in storage
-      .range(0, this.localStorage.length)
-      // extract each one
-      .map((i) => this.localStorage.key(i))
-      // guard against nulls
-      // (since we are iterating across a range provided by the localstorage,
-      // there should be none)
-      .filter(R.complement(R.isNil) as (x: string | null) => x is string)
-      // check if it matches the key we arer looking for
-      .filter((key) => key.startsWith(concatenatedKeyFragment))
-      // if so, convert it to a storage key
-      .map(unconcatenateKey);
+      range(0, this.localStorage.length)
+        // extract each one
+        .map((i) => this.localStorage.key(i))
+        // guard against nulls
+        // (since we are iterating across a range provided by the localstorage,
+        // there should be none)
+        .filter(complement(isNil) as (x: string | null) => x is string)
+        // check if it matches the key we arer looking for
+        .filter((key) => key.startsWith(concatenatedKeyFragment))
+        // if so, convert it to a storage key
+        .map(unconcatenateKey);
 
     return Promise.resolve(allMatchingKeys);
   }

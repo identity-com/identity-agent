@@ -1,9 +1,9 @@
 import { TaskEvent } from '@/service/task/TaskEvent';
 import { EventHandler } from '@/service/task/EventHandler';
-import R from 'ramda';
 import { DID } from '@/api/DID';
 import { DefaultTask } from '@/service/task/DefaultTask';
 import { DoneEvent } from '@/service/task/DoneEvent';
+import { pick } from 'ramda';
 
 export class CredentialConstraints {}
 
@@ -52,7 +52,7 @@ export class PresentationTask extends DefaultTask<void> {
   }
 
   serialize(): Record<string, any> {
-    return R.pick(['request', 'confirmed'], this);
+    return pick(['request', 'confirmed'], this);
   }
 }
 

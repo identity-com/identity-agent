@@ -2,7 +2,7 @@ import * as utils from '@/lib/crypto/utils';
 import { defaultDIDResolver } from '@/service/did/resolver/Resolver';
 import { example as did } from '../../../fixtures/did';
 import { xpub, xprv } from '../../../fixtures/keys';
-import { dummyEncryptKey } from '../../../../src/service/did/resolver/StubCache';
+import { dummyEncryptKey } from '../../../../src/service/did/generator/generate';
 
 describe('crypto utils', () => {
   describe('xpubToBase58Compressed', () => {

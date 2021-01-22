@@ -1,7 +1,7 @@
 import { example as did } from '../fixtures/did';
 import { Agent } from '@/api/Agent';
 import * as nacl from 'tweetnacl';
-import { dummyEncryptKey } from '../../src/service/did/resolver/StubCache';
+import { dummyEncryptKey } from '../../src/service/did/generator/generate';
 
 const { objectContaining } = expect;
 

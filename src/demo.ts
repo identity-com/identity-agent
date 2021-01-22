@@ -1,6 +1,8 @@
-import { registerForKeys } from '@/service/did/resolver/StubCache';
 import { generateEncryptKey, generateSignKey } from '@/lib/crypto/utils';
-import { defaultDIDResolver } from './service/did/resolver/Resolver';
+import {
+  defaultDIDResolver,
+  registerForKeys,
+} from './service/did/resolver/Resolver';
 import {
   ConfirmPresentationEvent,
   PresentationRequest,
@@ -10,10 +12,10 @@ import { Identity } from '@/api/internal';
 import { CommonEventType } from '@/service/task/EventType';
 import { TaskEvent } from '@/service/task/TaskEvent';
 
-const createDID = (): Identity => {
+const createDID = async (): Promise<Identity> => {
   const signingKey = generateSignKey();
   const encryptionKey = generateEncryptKey();
-  const did = registerForKeys(signingKey, encryptionKey);
+  const did = await registerForKeys(signingKey, encryptionKey);
 
   return { signingKey, encryptionKey, did };
 };

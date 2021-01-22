@@ -21,7 +21,8 @@ describe('Subject flows', () => {
   });
 
   describe('Presentation Requests', () => {
-    it('can request a presentation', async () => {
+    // TODO waiting on "pipeline" to move a New presentation to Done
+    it.skip('can request a presentation', async () => {
       const resolveTask = verifier.requestPresentation(
         subjectDID,
         new CredentialConstraints()

@@ -1,4 +1,5 @@
 const identityAgent = require('./dist/');
+require('dotenv').config()
 
 const { demo: { createDID, resolveDID, ...demoRest }, ...identityAgentRest } = identityAgent;
 

@@ -2,6 +2,14 @@
 
 ## Quick Start
 
+Install
+
+Identity-agent uses [nvm](https://github.com/nvm-sh/nvm) and [yarn](https://yarnpkg.com/)
+```shell
+nvm i
+yarn
+```
+
 Start a REPL like this:
 
 ```shell

@@ -1,21 +1,17 @@
 import { DIDDocument } from 'did-resolver';
 import { DID } from '@/api/DID';
-import { defaultDIDResolver } from '@/service/did/resolver/Resolver';
-import {
-  AsymmetricKey,
-  AsymmetricKeyInput,
-  JWT,
-} from '@/service/crypto/CryptoModule';
-import { normalizePrivateKey } from '@/lib/crypto/utils';
-import { PrivateKeyCrypto } from '@/service/crypto/PrivateKeyCrypto';
-import { DefaultCryptoModule } from '@/service/crypto/DefaultCryptoModule';
-import { WebStorage } from '@/service/storage/WebStorage';
-import { DefaultTaskMaster } from '@/service/task/TaskMaster';
+import { JWT } from '@/service/crypto/CryptoModule';
 import { JWE, JWTVerified } from 'did-jwt';
 import { Task } from '@/service/task/Task';
 import { DummyTask } from '@/service/task/DummyTask';
-import { Subject, Agent, Context, Verifier, Identity } from './internal';
-import nacl from 'tweetnacl';
+import {
+  Subject,
+  Agent,
+  Context,
+  Verifier,
+  Identity,
+  Builder,
+} from './internal';
 
 const isIdentity = (identity: DID | Identity): identity is Identity =>
   Object.prototype.hasOwnProperty.call(identity, 'did');
@@ -31,6 +27,10 @@ export class DefaultAgent implements Agent {
 
   get did(): DID {
     return this.document.id as DID;
+  }
+
+  resolve(did: DID): Promise<DIDDocument> {
+    return this.context.didResolver(did);
   }
 
   asSubject(): Subject {
@@ -56,6 +56,7 @@ export class DefaultAgent implements Agent {
     return this.context.crypto.encrypt(data, recipient);
   }
 
+  // temp
   decrypt(jwe: JWE): Promise<string> {
     return this.context.crypto.decrypt(jwe);
   }
@@ -70,63 +71,18 @@ export class DefaultAgent implements Agent {
     return this.context.taskMaster.allResults();
   }
 
-  static for(identity: DID | Identity) {
+  static for(identity: DID | Identity, context?: Context) {
     if (isIdentity(identity)) {
-      return new DefaultAgent.Builder(identity.did).withKeys(
+      return new Builder(identity.did).withKeys(
         identity.signingKey,
         identity.encryptionKey
       );
     }
 
-    return new DefaultAgent.Builder(identity);
+    return new Builder(identity, context);
   }
 
-  static Builder = class {
-    did: DID;
-    context: Partial<Context>;
-    signingKey?: AsymmetricKey;
-    encryptionKey?: nacl.BoxKeyPair;
-
-    constructor(did: DID) {
-      this.did = did;
-      this.context = {};
-    }
-
-    withKeys(
-      signingKey: AsymmetricKeyInput,
-      encryptionKey: nacl.BoxKeyPair
-    ): this {
-      this.signingKey = normalizePrivateKey(signingKey);
-      this.encryptionKey = encryptionKey; // TODO allow other formats e.g. base58
-      return this;
-    }
-
-    async build(): Promise<Agent> {
-      this.context.storage = new WebStorage();
-      this.context.didResolver = defaultDIDResolver(this.context.storage);
-
-      if (this.signingKey && this.encryptionKey) {
-        this.context.crypto = new PrivateKeyCrypto(
-          this.did,
-          this.signingKey,
-          this.encryptionKey,
-          this.context.didResolver
-        );
-      } else {
-        this.context.crypto = new DefaultCryptoModule(
-          this.did,
-          this.context.didResolver
-        );
-      }
-
-      const document = await this.context.didResolver(this.did);
-
-      // rehydrate the tasks only after resolving the DID
-      this.context.taskMaster = await DefaultTaskMaster.rehydrate(
-        this.context.storage
-      );
-
-      return new DefaultAgent(document, this.context as Context);
-    }
-  };
+  static register(context?: Context) {
+    return new Builder.Registrar(context);
+  }
 }

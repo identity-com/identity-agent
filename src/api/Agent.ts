@@ -12,11 +12,18 @@ import { AgentStorage } from '@/service/storage/AgentStorage';
 import { TaskMaster } from '@/service/task/TaskMaster';
 import nacl from 'tweetnacl';
 
+export type Config = {
+  // include this only while we keep an S3Cache DID resolver
+  awsAccessKeyId?: string;
+  awsSecretAccessKey?: string;
+};
+
 export type Context = {
   didResolver: DIDResolver;
   crypto: CryptoModule;
   storage: AgentStorage;
   taskMaster: TaskMaster;
+  config: Config;
 };
 
 export type Identity = {
@@ -26,17 +33,11 @@ export type Identity = {
 };
 
 export abstract class Agent {
-  readonly document: DIDDocument;
-  readonly context: Context;
+  abstract did: DID;
+  abstract document: DIDDocument;
+  abstract context: Context;
 
-  constructor(document: DIDDocument, context: Context) {
-    this.document = document;
-    this.context = context;
-  }
-
-  get did(): DID {
-    return this.document.id as DID;
-  }
+  abstract resolve(did: DID): Promise<DIDDocument>;
 
   abstract asSubject(): Subject;
   abstract asVerifier(): Verifier;
@@ -52,7 +53,11 @@ export abstract class Agent {
 
   abstract allResults(): Promise<any[]>;
 
-  static for(did: DID) {
-    return DefaultAgent.for(did);
+  static for(did: DID, context?: Context) {
+    return DefaultAgent.for(did, context);
+  }
+
+  static register(context?: Context) {
+    return DefaultAgent.register(context);
   }
 }

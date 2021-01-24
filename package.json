@@ -31,23 +31,13 @@
     "printWidth": 80,
     "semi": true,
     "singleQuote": true,
+    "endOfLine": "auto",
     "trailingComma": "es5"
   },
   "name": "identity-agent",
   "author": "dankelleher",
   "module": "dist/identity-agent.esm.js",
-  "size-limit": [
-    {
-      "path": "dist/identity-agent.cjs.production.min.js",
-      "limit": "10 KB"
-    },
-    {
-      "path": "dist/identity-agent.esm.js",
-      "limit": "10 KB"
-    }
-  ],
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^4.9.1",
     "@types/bs58": "^4.0.1",
     "@types/node-localstorage": "^1.3.0",
     "@types/ramda": "^0.27.34",
@@ -57,7 +47,6 @@
     "husky": "^4.3.8",
     "local-repl": "^4.0.0",
     "prettier": "2.2",
-    "size-limit": "^4.9.1",
     "ts-jest": "^26.4.4",
     "ts-node": "^9.1.1",
     "tsconfig-paths": "^3.9.0",
@@ -72,10 +61,10 @@
     "bs58": "^4.0.1",
     "did-jwt": "^4.8.1",
     "did-resolver": "^2.1.2",
-    "get-stream": "^6.0.0",
     "is-promise": "^4.0.0",
     "node-localstorage": "^2.1.6",
     "ramda": "^0.27.1",
+    "readable-web-to-node-stream": "^3.0.1",
     "tweetnacl": "^1.0.3",
     "uuid": "^8.3.2"
   }

@@ -1,26 +1,22 @@
 import { generateEncryptKey, generateSignKey } from '@/lib/crypto/utils';
 import {
-  defaultDIDResolver,
-  registerForKeys,
-} from './service/did/resolver/Resolver';
-import {
   ConfirmPresentationEvent,
   PresentationRequest,
   PresentationTask,
 } from '@/service/task/subject/Presentation';
-import { Identity } from '@/api/internal';
+import { Agent, Identity } from '@/api/internal';
 import { CommonEventType } from '@/service/task/EventType';
 import { TaskEvent } from '@/service/task/TaskEvent';
 
 const createDID = async (): Promise<Identity> => {
   const signingKey = generateSignKey();
   const encryptionKey = generateEncryptKey();
-  const did = await registerForKeys(signingKey, encryptionKey);
+  const agent = await Agent.register()
+    .withKeys(signingKey, encryptionKey)
+    .build();
 
-  return { signingKey, encryptionKey, did };
+  return { signingKey, encryptionKey, did: agent.did };
 };
-
-const resolveDID = defaultDIDResolver();
 
 const resolvePresentationRequestTaskWithDummyCredentials = (
   task: PresentationTask
@@ -39,7 +35,6 @@ class NewEvent extends TaskEvent<CommonEventType.New> {
 
 export {
   createDID,
-  resolveDID,
   resolvePresentationRequestTaskWithDummyCredentials,
   NewEvent,
 };

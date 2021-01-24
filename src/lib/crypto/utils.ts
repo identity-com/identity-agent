@@ -1,8 +1,7 @@
 import { bip32, ECPair } from 'bitcoinjs-lib';
 import { encode, decode } from 'bs58';
 import didJWT, { JWE } from 'did-jwt';
-import { TextDecoder, TextEncoder } from 'util';
-
+// import util from 'util';
 import { DID, DIDResolver } from '@/api/DID';
 import {
   AsymmetricKey,
@@ -14,6 +13,9 @@ import {
 } from '@/service/crypto/CryptoModule';
 import { Resolver } from 'did-resolver';
 import nacl from 'tweetnacl';
+
+// if (!global.TextEncoder) global.TextEncoder = util.TextEncoder;
+// if (!global.TextDecoder) global.TextDecoder = util.TextDecoder;
 
 /**
  * Test this via the command line using

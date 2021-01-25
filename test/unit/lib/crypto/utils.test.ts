@@ -25,7 +25,7 @@ describe('crypto utils', () => {
     it('should create and sign a JWT with an xprv', async () => {
       const key = utils.xprvToBytes(xprv);
       const jwt = await utils.createJWT(did, key, {});
-      const verifiedJWT = await utils.verifyJWT(jwt, defaultDIDResolver());
+      const verifiedJWT = await utils.verifyJWT(jwt, defaultDIDResolver({}));
 
       expect(verifiedJWT.doc.id).toEqual(did);
     });
@@ -34,7 +34,7 @@ describe('crypto utils', () => {
   describe('encrypt', () => {
     it('should encrypt data as JWE', async () => {
       const message = 'hello';
-      const jwe = await utils.encrypt(message, did, defaultDIDResolver());
+      const jwe = await utils.encrypt(message, did, defaultDIDResolver({}));
 
       const decrypted = await utils.decrypt(jwe, dummyEncryptKey);
 

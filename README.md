@@ -76,3 +76,16 @@ demo.resolvePresentationRequestTaskWithDummyCredentials(task)
 
 await task.result()
 ```
+
+
+## Running the example browser app
+
+The example app must be linked to the library using yarn link.
+
+```shell
+yarn link
+cd examples/browser
+yarn
+yarn link identity-agent
+yarn start
+```

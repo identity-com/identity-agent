@@ -21,9 +21,9 @@ export const DIDDisplay = ({ agent, onCopy, showIcon }: Props) => (
         <div className="ml-3 flex items-center text-xl">
           <div className="text-green-800">
             <div className="font-bold">DID Generated</div>
-            <code>{agent.did}</code>
+            <code className="break-all">{agent.did}</code>
           </div>
-          <div className="mt-3 md:mt-0 md:ml-6">
+          <div className="mt-3 md:mt-0 ml-6">
             <CopyToClipboard text={agent?.did} onCopy={onCopy}>
               <Button>Copy {showIcon && <CheckIcon />}</Button>
             </CopyToClipboard>

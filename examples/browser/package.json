@@ -15,6 +15,7 @@
     "@types/react-dom": "^16.9.8",
     "autoprefixer": "^9",
     "buffer": "^6.0.3",
+    "deploy-aws-s3-cloudfront": "^3.3.0",
     "postcss": "^7",
     "react": "^17.0.1",
     "react-copy-to-clipboard": "^5.0.3",
@@ -31,7 +32,8 @@
   "scripts": {
     "start": "craco start",
     "build": "craco build",
-    "test": "craco test"
+    "test": "craco test",
+    "deploy": "scripts/deploy-site.sh"
   },
   "eslintConfig": {
     "extends": [
@@ -50,8 +52,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "deploy-aws-s3-cloudfront": "^3.3.0"
   }
 }

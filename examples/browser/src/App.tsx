@@ -2,17 +2,16 @@ import React, {useCallback, useState} from 'react';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import logo from './logo.svg';
 import './App.css';
-import { Agent } from 'identity-agent';
+import { Agent, demo, DID } from 'identity-agent';
 
-const createAgent = async () => {
-  return Agent.register({
-    config: {
-      // WARNING - for demo purposes only - do not pass AWS keys if using this on a browser in production
-      awsAccessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
-      awsSecretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY
-    }
-  }).build()
-}
+const config = {
+  // WARNING - for demo purposes only - do not pass AWS keys if using this on a browser in production
+  awsAccessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
+  awsSecretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY
+};
+
+const createAgent = () => Agent.register({config}).build()
+const sendMessage = (did: DID, message:any) => demo.sendMessage(did, message, config)
 
 const App = () => {
   const [agent, setAgent] = useState<Agent>(null);
@@ -21,9 +20,11 @@ const App = () => {
   const [encryptedMessage, setEncryptedMessage] = useState<string>('');
   const [copied, setCopied] = useState<string>('');
 
-  const encrypt = useCallback(() => agent.encrypt(message, recipient).then(setEncryptedMessage), [agent, recipient])
-  const decrypt = useCallback(() => agent.decrypt(message).then(setMessage), [agent])
+  const encrypt = useCallback(() => agent.encrypt(message, recipient).then(setEncryptedMessage), [agent, recipient, message])
+  const decrypt = useCallback(() => agent.decrypt(encryptedMessage).then(setMessage), [agent, encryptedMessage])
   const registerAgent = useCallback(() => createAgent().then(setAgent), []);
+
+  const sendEncryptedMessage = useCallback(() => sendMessage(recipient as DID, encryptedMessage), [recipient, encryptedMessage]);
 
   return (
     <div className="App">
@@ -52,6 +53,7 @@ const App = () => {
               <CopyToClipboard text={JSON.stringify(encryptedMessage)} onCopy={() => setCopied('message')}>
                 <button>Copy {copied === 'message' && '✅'}</button>
               </CopyToClipboard>
+              <button onClick={sendEncryptedMessage}>Send</button>
             </div>
           </div>
 

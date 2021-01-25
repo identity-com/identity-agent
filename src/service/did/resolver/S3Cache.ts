@@ -6,36 +6,12 @@ import {
   HeadBucketCommand,
 } from '@aws-sdk/client-s3';
 import { DIDDocument } from 'did-resolver';
-import { Readable } from 'stream';
-import { complement, isNil, pickBy } from 'ramda';
-import { ReadableWebToNodeStream } from 'readable-web-to-node-stream';
+import { filterOutMissingProps } from '@/lib/util';
+import { streamToString, SupportedStream } from '@/lib/transport/streams';
 
 const AWS_REGION = 'us-east-1';
 const BUCKET = 'did-cache';
-
-const filterOutMissingProps = pickBy(complement(isNil));
-
-// AWS S3 Client returns Readable on node, and ReadableStream in the browser
-type SupportedStream = Readable | ReadableStream;
-
-// check if the input is a Web API readablestream.
-const isReadableStream = (stream: any): stream is ReadableStream =>
-  'getReader' in stream; // don't use hasOwnProperty, as the getReader function is on the prototype
-
-const streamToString = async (stream: SupportedStream): Promise<string> => {
-  // support browser implementations. Convert the Web ReadableStream API to the Node Stream API
-  const nodeStream = isReadableStream(stream)
-    ? new ReadableWebToNodeStream(stream)
-    : stream;
-  return new Promise<string>((resolve) => {
-    const chunks: any[] = [];
-
-    nodeStream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
-    nodeStream.on('end', () =>
-      resolve(Buffer.concat(chunks).toString('utf-8'))
-    );
-  });
-};
+const PREFIX = 'dids';
 
 type S3Config = {
   // include this only while we keep an S3Cache DID resolver
@@ -89,7 +65,7 @@ export class S3Cache {
     const client = this.makeClient();
     const command = new GetObjectCommand({
       Bucket: BUCKET,
-      Key: did,
+      Key: `${PREFIX}/${did}`,
     });
 
     const response = await client.send(command);
@@ -108,7 +84,7 @@ export class S3Cache {
     const client = this.makeClient();
     const command = new PutObjectCommand({
       Bucket: BUCKET,
-      Key: document.id,
+      Key: `${PREFIX}/${document.id}`,
       Body: JSON.stringify(document, null, 1),
     });
 

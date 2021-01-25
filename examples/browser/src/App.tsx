@@ -15,13 +15,14 @@ const createAgent = async () => {
 }
 
 const App = () => {
-  const [ agent, setAgent ] = useState<Agent>( null);
-  const [ recipient, setRecipient ] = useState<string>( '');
-  const [ message, setMessage ] = useState<string>( '');
-  const [ encryptedMessage, setEncryptedMessage ] = useState<string>( '');
-  const [ copied, setCopied ] = useState<string>('');
+  const [agent, setAgent] = useState<Agent>(null);
+  const [recipient, setRecipient] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
+  const [encryptedMessage, setEncryptedMessage] = useState<string>('');
+  const [copied, setCopied] = useState<string>('');
 
-  const encrypt = () => agent.encrypt(message, recipient).then(setEncryptedMessage)
+  const encrypt = useCallback(() => agent.encrypt(message, recipient).then(setEncryptedMessage), [agent, recipient])
+  const decrypt = useCallback(() => agent.decrypt(message).then(setMessage), [agent])
   const registerAgent = useCallback(() => createAgent().then(setAgent), []);
 
   return (
@@ -31,15 +32,14 @@ const App = () => {
       </header>
       <div className="App-body">
         DID: {agent?.did}
-        {agent &&
-        <CopyToClipboard text={agent?.did} onCopy={() => setCopied('did')}>
-          <button>Copy {copied === 'did' && '✅'}</button>
-        </CopyToClipboard>
+        {agent ?
+          <CopyToClipboard text={agent?.did} onCopy={() => setCopied('did')}>
+            <button>Copy {copied === 'did' && '✅'}</button>
+          </CopyToClipboard> : <button onClick={registerAgent}>Create Identity</button>
         }
-      </div>
-
-      <div>
-        { agent ?
+        {agent &&
+        <>
+          <hr/>
           <div>
             <div>
               Encrypt <input onChange={e => setMessage(e.target.value)}/>
@@ -53,7 +53,20 @@ const App = () => {
                 <button>Copy {copied === 'message' && '✅'}</button>
               </CopyToClipboard>
             </div>
-          </div> : <button onClick={registerAgent}>Create Identity</button>
+          </div>
+
+          <hr/>
+          <div>
+            <div>
+              Decrypt <textarea onChange={e => setEncryptedMessage(JSON.parse(e.target.value))}/>
+              <button onClick={decrypt}>Go</button>
+            </div>
+            <div>
+              Decrypted message
+              <textarea value={JSON.stringify(message, null, 1)} disabled={true}/>
+            </div>
+          </div>
+        </>
         }
       </div>
     </div>

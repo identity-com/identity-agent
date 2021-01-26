@@ -45,6 +45,11 @@ export class PresentationTask extends DefaultTask<void> {
 
   protected initialize(): void {}
 
+  resolveWithPresentation(presentation: Presentation) {
+    if (!this.request) throw new Error('Missing event');
+    return this.emit(new ConfirmPresentationEvent(this.request, presentation));
+  }
+
   deserialize(serialized: Record<string, any>): void {
     const { request } = serialized;
     this.request = request;

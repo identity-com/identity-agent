@@ -91,10 +91,13 @@ export abstract class DefaultTask<R> implements Task<R> {
     const reducer = (
       earlierResult: Promise<R>,
       handler: EventHandler<R, E>
-    ): Promise<R> => {
-      const handlerTask = normalizeHandlerResult(handler.handle(event));
-      return earlierResult.then(() => handlerTask.result());
-    };
+    ): Promise<R> =>
+      // once the previous handler is executed,
+      earlierResult.then(() => {
+        // execute the next handler
+        const handlerTask = normalizeHandlerResult(handler.handle(event));
+        return handlerTask.result();
+      });
 
     return handlersForEvent.reduce(
       reducer,

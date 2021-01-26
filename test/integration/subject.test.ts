@@ -63,7 +63,10 @@ describe('Subject flows', () => {
         .resolvePresentationRequest(request)
         .on(PresentationEventType.ConfirmPresentation, waitForOKHandler);
 
-      resolveTask.emit(new ConfirmPresentationEvent(request, presentation));
+      resolveTask.resolveWithPresentation(presentation);
+
+      // execute the wait for ok handler (simulate showing an OK? message on the screen)
+      await new Promise((resolve) => setImmediate(resolve));
 
       userClicksOK();
 

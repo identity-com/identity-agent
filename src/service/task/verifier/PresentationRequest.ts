@@ -47,6 +47,10 @@ export class PresentationRequestTask extends DefaultTask<Presentation> {
     );
   }
 
+  receivePresentation(presentation: Presentation): Promise<Presentation> {
+    return this.emit(new PresentationReceivedEvent(presentation));
+  }
+
   protected initialize(): void {}
 
   deserialize(_serialized: Record<string, any>): void {}

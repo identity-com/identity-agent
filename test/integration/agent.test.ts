@@ -1,12 +1,10 @@
 import { example as did } from '../fixtures/did';
+import { xprv as dummyXprv } from '../fixtures/keys';
 import { Agent } from '@/api/Agent';
 import * as nacl from 'tweetnacl';
 import { dummyEncryptKey } from '../../src/service/did/generator/generate';
 
 const { objectContaining } = expect;
-
-const dummyXprv =
-  'xprv9vBSiyPPnUq3h9m1kMG4n2iY8CQDeWHTWV3bxWqaEECp5JfJULz4yBmYniAW3iJE9381onwJxx7xufcRordF3Y1PZ2dNhCBmye6Sw6NNaGf';
 
 const senderDID = did;
 const receiverDID = 'did:dummy:receiver';

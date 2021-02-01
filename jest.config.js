@@ -7,5 +7,5 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)': '<rootDir>/src/$1',
   },
-  setupFiles: ['./test/setup/clearScratch.ts']
+  setupFiles: ['./test/setup/clearScratch.ts',  './test/setup/transport.ts']
 };

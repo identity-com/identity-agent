@@ -17,6 +17,8 @@ import { DefaultCryptoModule } from '@/service/crypto/DefaultCryptoModule';
 import { DefaultTaskMaster } from '@/service/task/TaskMaster';
 import { DefaultAgent } from '@/api/internal';
 import { Registry } from '@/service/did/resolver/Registry';
+import { DefaultHttp } from '@/service/transport/http/DefaultHttp';
+import { HttpTransport } from '@/service/transport/HttpTransport';
 
 export class Builder {
   did: DID;
@@ -68,6 +70,12 @@ export class Builder {
     // rehydrate the tasks only after resolving the DID
     this.context.taskMaster = await DefaultTaskMaster.rehydrate(
       this.context.storage
+    );
+
+    this.context.transport = new HttpTransport(
+      new DefaultHttp(),
+      this.context.didResolver,
+      this.context.crypto
     );
 
     return new DefaultAgent(document, this.context as Context);

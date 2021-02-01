@@ -6,14 +6,21 @@ import {
   keyToBase58Compressed,
   normalizePublicKey,
 } from '@/lib/crypto/utils';
-import { DIDDocument } from 'did-resolver';
+import { DIDDocument, ServiceEndpoint } from 'did-resolver';
 import { deriveFromKey } from '@/lib/did/utils';
+import { DEFAULT_HUB } from '@/lib/constants';
 
 // const dummyXprv = 'xprv9vBSiyPPnUq3h9m1kMG4n2iY8CQDeWHTWV3bxWqaEECp5JfJULz4yBmYniAW3iJE9381onwJxx7xufcRordF3Y1PZ2dNhCBmye6Sw6NNaGf'
 const dummyXpub =
   'xpub69Ao8UvHcrPLudqUrNo59AfGgEEi3y1JshyCkuFBnZjnx6zT1tJKWz62e2g6MdgXLoiqSHgANwkzGM45XKxY9PQcC7pDaK3SuRL1DH8kqJq';
 
 export const dummyEncryptKey = nacl.box.keyPair();
+
+const makeMessageService = (did: DID): ServiceEndpoint => ({
+  type: 'MessagingService',
+  id: did + '#messages',
+  serviceEndpoint: `${DEFAULT_HUB}/${did}/messages`,
+});
 
 const makeKeyEntry = (
   did: DID,
@@ -66,12 +73,15 @@ const makeDocument = (did: DID, signKey: PublicKey, encryptKey: Uint8Array) => {
     'X25519KeyAgreementKey2019'
   );
 
+  const services = [makeMessageService(did)];
+
   return {
     '@context': 'https://w3id.org/did/v1',
     id: did,
     publicKey: [keyEntry],
     authentication: [authEntry],
     keyAgreement: [keyAgreementEntry],
+    service: services,
   };
 };
 

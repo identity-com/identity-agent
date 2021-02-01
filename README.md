@@ -13,7 +13,6 @@ yarn
 Start a REPL like this:
 
 ```shell
-yarn
 yarn repl
 ```
 

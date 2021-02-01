@@ -22,21 +22,25 @@ export const passthroughHandler = {
 export const rejectHandler = <R>(
   reject: (reason: Error) => void,
   promise: Promise<R>
-) => ({
-  handle: (failedEvent: FailedEvent) => {
-    reject(failedEvent.reason);
-    return promise;
-  },
-});
+) => {
+  return {
+    handle: (failedEvent: FailedEvent) => {
+      reject(failedEvent.reason);
+      return promise;
+    },
+  };
+};
 export const doneHandler = <R>(
   resolve: (result: R) => void,
   promise: Promise<R>
-) => ({
-  handle: (doneEvent: DoneEvent<R>) => {
-    resolve(doneEvent.result);
-    return promise;
-  },
-});
+) => {
+  return {
+    handle: (doneEvent: DoneEvent<R>) => {
+      resolve(doneEvent.result);
+      return promise;
+    },
+  };
+};
 
 type HandlerMap = Map<
   EventType,

@@ -3,12 +3,13 @@
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "private": true,
   "files": [
     "dist",
     "src"
   ],
   "engines": {
-    "node": ">=10"
+    "node": ">=14"
   },
   "scripts": {
     "start": "tsdx watch",
@@ -21,7 +22,6 @@
     "cli": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}'  ts-node src/cli",
     "repl": "yarn build && local-repl"
   },
-  "peerDependencies": {},
   "husky": {
     "hooks": {
       "pre-commit": "tsdx lint --maxWarnings 0"
@@ -34,19 +34,22 @@
     "endOfLine": "auto",
     "trailingComma": "es5"
   },
-  "name": "identity-agent",
+  "name": "@identity.com/identity-agent",
   "author": "dankelleher",
   "module": "dist/identity-agent.esm.js",
   "devDependencies": {
     "@types/bs58": "^4.0.1",
+    "@types/node-fetch": "^2.5.8",
     "@types/node-localstorage": "^1.3.0",
     "@types/ramda": "^0.27.34",
     "@types/uuid": "^8.3.0",
     "dotenv": "^8.2.0",
     "eslint-plugin-prettier": "^3.3.1",
     "husky": "^4.3.8",
+    "jest-fetch-mock": "^3.0.3",
     "local-repl": "^4.0.0",
-    "prettier": "2.2",
+    "prettier": "^2.2.1",
+    "release-it": "^14.2.2",
     "ts-jest": "^26.4.4",
     "ts-node": "^9.1.1",
     "tsconfig-paths": "^3.9.0",
@@ -55,13 +58,14 @@
     "typescript": "^4.1.3"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.3.0",
-    "@rollup/plugin-alias": "^3.1.1",
+    "@aws-sdk/client-s3": "^3.4.1",
+    "@rollup/plugin-alias": "^3.1.2",
     "bitcoinjs-lib": "^5.2.0",
     "bs58": "^4.0.1",
     "did-jwt": "^4.8.1",
     "did-resolver": "^2.1.2",
     "is-promise": "^4.0.0",
+    "node-fetch": "^2.6.1",
     "node-localstorage": "^2.1.6",
     "ramda": "^0.27.1",
     "readable-web-to-node-stream": "^3.0.1",

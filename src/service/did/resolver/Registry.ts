@@ -9,6 +9,7 @@ import {
 } from '@/service/did/generator/generate';
 import { AsymmetricKey } from '@/service/crypto/CryptoModule';
 import nacl from 'tweetnacl';
+import { DID_METHOD } from '@/lib/did/utils';
 
 export class Registry {
   private s3Cache: S3Cache;
@@ -47,7 +48,7 @@ export class Registry {
   resolvers() {
     return {
       dummy: async (did: string | DID) => makeDummyDocument(did as DID),
-      civic: async (did: string | DID) => this.getDocument(did as DID),
+      [DID_METHOD]: async (did: string | DID) => this.getDocument(did as DID),
     };
   }
 }

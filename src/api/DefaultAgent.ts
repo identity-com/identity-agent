@@ -4,6 +4,7 @@ import { JWT } from '@/service/crypto/CryptoModule';
 import { JWE, JWTVerified } from 'did-jwt';
 import { Task } from '@/service/task/Task';
 import { DummyTask } from '@/service/task/DummyTask';
+import { Response } from '@/service/transport/Transport';
 import {
   Subject,
   Agent,
@@ -59,6 +60,10 @@ export class DefaultAgent implements Agent {
   // temp
   decrypt(jwe: JWE): Promise<string> {
     return this.context.crypto.decrypt(jwe);
+  }
+
+  send(message: Record<string, any>, recipient: DID): Promise<Response> {
+    return this.context.transport.send(recipient, message, 'Message');
   }
 
   // temp

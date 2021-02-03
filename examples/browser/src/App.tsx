@@ -8,12 +8,23 @@ import { Button } from "./components/Button";
 import { DIDDisplay } from "./components/DIDDisplay";
 import { EncryptMessage } from "./components/EncryptMessage";
 import { Decrypt } from "./components/DecryptMessage";
+import {connect} from "./utils/hub";
+
+const listener = (error: any, message:any) => {
+  if (error) console.error(error);
+  if (message) console.log(message);
+}
+const registerHub = (agent: Agent) => { connect(agent, listener )};
 
 const App = () => {
   const [copied, setCopied] = useState<"did" | "message" | null>(null);
 
   const [agent, setAgent] = useState<Agent>(null);
-  const registerAgent = useCallback(() => createAgent().then(setAgent), []);
+  const registerAgent = useCallback(async () => {
+    const agent = await createAgent()
+    setAgent(agent)
+    registerHub(agent)
+  }, []);
 
   const [message, setMessage] = useState<string>("");
   const [encryptedMessage, setEncryptedMessage] = useState<string>("");

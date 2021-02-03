@@ -1,19 +1,15 @@
 import React, { useCallback, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-// eslint-disable-next-line
-import { Agent, demo, DID } from "identity-agent";
-
-// import { config } from '../utils/agent';
+import { Agent, DID } from "identity-agent";
 
 import { CheckIcon } from "./icons/CheckIcon";
 import { Button } from "./Button";
 import { TwoColumnContainer } from "./TwoColumnContainer";
 import { TextArea } from './TextArea';
 
-/*
-const sendMessage = (did: DID, message: any) =>
-  demo.sendMessage(did, message, config);
-*/
+
+const sendMessage = (agent: Agent, recipient: DID, message: any) =>
+  agent.send(message, recipient);
 
 type Props = {
   agent: Agent;
@@ -46,10 +42,10 @@ export const EncryptMessage = ({
     encrypt();
   }
 
-  /*const sendEncryptedMessage = useCallback(
-    () => sendMessage(recipient as DID, encryptedMessage),
-    [recipient, encryptedMessage]
-  );*/
+  const sendEncryptedMessage = useCallback(
+    () => sendMessage(agent, recipient as DID, encryptedMessage),
+    [recipient, encryptedMessage, agent]
+  );
 
   return (
     <TwoColumnContainer
@@ -120,7 +116,7 @@ export const EncryptMessage = ({
               >
                 <Button>Copy {showIcon && <CheckIcon />}</Button>
               </CopyToClipboard>
-              {/*<button onClick={sendEncryptedMessage}>Send</button>*/}
+              <Button onClick={sendEncryptedMessage}>Send</Button>
             </div>
           </div>
         </div>

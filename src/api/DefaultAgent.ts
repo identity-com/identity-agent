@@ -13,6 +13,7 @@ import {
   Identity,
   Builder,
 } from './internal';
+import { Registrar } from '@/service/agent/builder/Registrar';
 
 const isIdentity = (identity: DID | Identity): identity is Identity =>
   Object.prototype.hasOwnProperty.call(identity, 'did');
@@ -76,7 +77,7 @@ export class DefaultAgent implements Agent {
     return this.context.taskMaster.allResults();
   }
 
-  static for(identity: DID | Identity, context?: Context) {
+  static for(identity: DID | Identity, context?: Partial<Context>) {
     if (isIdentity(identity)) {
       return new Builder(identity.did).withKeys(
         identity.signingKey,
@@ -87,7 +88,7 @@ export class DefaultAgent implements Agent {
     return new Builder(identity, context);
   }
 
-  static register(context?: Context) {
-    return new Builder.Registrar(context);
+  static register(context?: Partial<Context>) {
+    return new Registrar(context);
   }
 }

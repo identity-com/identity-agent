@@ -66,34 +66,7 @@ module.exports = {
     const rpt2Plugin = config.plugins.find(p => p.name === 'rpt2');
     const rpt2PluginIndex = config.plugins.indexOf(rpt2Plugin);
 
-    console.log("INDEX: ");
-    console.log(rpt2PluginIndex);
-
     config.plugins.splice(rpt2PluginIndex, 1, customRPT2Plugin);
     return config;
-
-    //Replace "@/" with "src/" as the root directory
-    // config.plugins.push({
-    //   plugins: [
-    //     alias({
-    //       entries: [{ find: /@\//, replacement: /src\// }],
-    //     }),
-    //     customRPT2Plugin
-    //   ],
-    // });
-
-
-    //
-    // config.plugins.push({ plugins: [
-    //   tsPlugin({
-    //     typescript: ttypescript
-    //   })
-    //   ]})
-
-    //Do not treat absolute paths as external modules
-    // return {
-    //   ...config,
-    //   external: id => !id.startsWith('@/') && config.external(id),
-    // };
   },
 };

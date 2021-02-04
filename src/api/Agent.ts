@@ -17,6 +17,9 @@ export type Config = {
   // include this only while we keep an S3Cache DID resolver
   awsAccessKeyId?: string;
   awsSecretAccessKey?: string;
+
+  // used when registering new DIDs only
+  hubBaseUrl?: string;
 };
 
 export type Context = {
@@ -59,11 +62,11 @@ export abstract class Agent {
 
   abstract allResults(): Promise<any[]>;
 
-  static for(did: DID, context?: Context) {
+  static for(did: DID, context?: Partial<Context>) {
     return DefaultAgent.for(did, context);
   }
 
-  static register(context?: Context) {
+  static register(context?: Partial<Context>) {
     return DefaultAgent.register(context);
   }
 }

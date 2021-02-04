@@ -1,45 +1,54 @@
-import React, { useCallback, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import { Agent } from "identity-agent";
 
 import { createAgent } from './utils/agent';
 
 import { Header } from "./components/Header";
-import { Button } from "./components/Button";
 import { DIDDisplay } from "./components/DIDDisplay";
 import { EncryptMessage } from "./components/EncryptMessage";
-import { Decrypt } from "./components/DecryptMessage";
 import {connect} from "./utils/hub";
+import { IncomingMessages } from './components/IncomingMessages';
+import { DID } from '../../../src';
 
-const listener = (error: any, message:any) => {
-  if (error) console.error(error);
-  if (message) console.log(message);
+export type Message = {
+  content: string,
+  sender: DID,
+  receivedAt: Date,
+  id: string
 }
-const registerHub = (agent: Agent) => { connect(agent, listener )};
 
 const App = () => {
   const [copied, setCopied] = useState<"did" | "message" | null>(null);
-
-  const [agent, setAgent] = useState<Agent>(null);
-  const registerAgent = useCallback(async () => {
-    const agent = await createAgent()
-    setAgent(agent)
-    registerHub(agent)
-  }, []);
-
   const [message, setMessage] = useState<string>("");
-  const [encryptedMessage, setEncryptedMessage] = useState<string>("");
+  const [incomingMessages, setIncomingMessages] = useState<Message[]>([]);
+  const [agent, setAgent] = useState<Agent>();
+
+  useEffect(() => {
+    const listener = (error: any, message:any) => {
+      if (error) console.error(error);
+      if (message) {
+        setIncomingMessages(incomingMessages => [message, ...incomingMessages])
+      }
+    }
+
+    if (!agent) return;
+
+    connect(agent, listener );
+  }, [agent]);
+
+  useEffect(() => {
+    const registerAgent = async () => {
+      const agent = await createAgent()
+      setAgent(agent)
+    }
+
+    registerAgent()
+  }, []);
 
   return (
     <div>
       <Header />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        {!agent ? (
-          <div className="flex justify-center">
-            <Button onClick={registerAgent} size='large'>
-              Create Identity
-            </Button>
-          </div>
-        ) : null}
         {agent && (
           <>
             <DIDDisplay
@@ -48,22 +57,14 @@ const App = () => {
               showIcon={copied === "did"}
             />
             <hr className="mt-2 mb-2"/>
+            <IncomingMessages messages={incomingMessages}/>
+            <hr className="mt-2 mb-2"/>
             <EncryptMessage
               agent={agent}
               message={message}
               setMessage={setMessage}
-              encryptedMessage={encryptedMessage}
-              setEncryptedMessage={setEncryptedMessage}
               onCopy={() => setCopied("message")}
               showIcon={copied === "message"}
-            />
-            <hr className="mt-2 mb-2"/>
-            <Decrypt
-              agent={agent}
-              message={message}
-              setMessage={setMessage}
-              encryptedMessage={encryptedMessage}
-              setEncryptedMessage={setEncryptedMessage}
             />
           </>
         )}

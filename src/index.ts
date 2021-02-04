@@ -1,4 +1,4 @@
-import { Agent } from '@/api/internal';
+import { Agent, Config } from '@/api/internal';
 import * as Presentation from '@/service/task/subject/Presentation';
 import * as PresentationRequest from '@/service/task/verifier/PresentationRequest';
 import { DID } from '@/api/DID';
@@ -13,4 +13,5 @@ export {
   CommonEventType,
   demo,
   DID,
+  Config,
 };

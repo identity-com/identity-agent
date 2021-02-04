@@ -1,7 +1,6 @@
 import { bip32, ECPair } from 'bitcoinjs-lib';
 import { encode, decode } from 'bs58';
 import didJWT, { JWE } from 'did-jwt';
-// import util from 'util';
 import { DID, DIDResolver } from '@/api/DID';
 import {
   AsymmetricKey,

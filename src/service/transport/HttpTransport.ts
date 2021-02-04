@@ -33,7 +33,6 @@ export class HttpTransport implements Transport {
   ): Promise<string> {
     return Promise.resolve(payload)
       .then((body) => (options.signed ? this.crypto.createToken(body) : body))
-      .then(JSON.stringify)
       .then((body) =>
         options.encrypted
           ? this.crypto.encrypt(body, recipient).then(JSON.stringify)
@@ -64,6 +63,10 @@ export class HttpTransport implements Transport {
 
     const body = await this.makeHttpBody(payload, recipient, options);
 
-    return this.http.post(endpoint, body, {}).then(() => ({ status: 'ok' }));
+    return this.http
+      .post(endpoint, body, {
+        'content-type': 'application/json',
+      })
+      .then(() => ({ status: 'ok' }));
   }
 }

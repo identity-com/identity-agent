@@ -54,17 +54,22 @@ export class S3Cache {
     );
   }
 
-  hasPermissions = (): Promise<boolean> => {
+  hasPermissions(): Promise<boolean> {
     const client = this.makeClient();
     const command = new HeadBucketCommand({ Bucket: BUCKET });
     return client
       .send(command)
       .then(() => true)
       .catch((error) => {
-        console.log('S3 Cache disabled - error ' + error);
-        return false;
+        if (error.$metadata.httpStatusCode === 403) {
+          console.log('S3 Cache disabled, permission denied');
+          return false;
+        }
+
+        console.error('S3 Cache disabled - error ', error);
+        throw error;
       });
-  };
+  }
 
   get = async (did: DID): Promise<DIDDocument> => {
     const client = this.makeClient();

@@ -9,6 +9,7 @@ import {
 import { DIDDocument, ServiceEndpoint } from 'did-resolver';
 import { deriveFromKey } from '@/lib/did/utils';
 import { DEFAULT_HUB } from '@/lib/constants';
+import { Config } from '@/api/Agent';
 
 // const dummyXprv = 'xprv9vBSiyPPnUq3h9m1kMG4n2iY8CQDeWHTWV3bxWqaEECp5JfJULz4yBmYniAW3iJE9381onwJxx7xufcRordF3Y1PZ2dNhCBmye6Sw6NNaGf'
 const dummyXpub =
@@ -16,11 +17,15 @@ const dummyXpub =
 
 export const dummyEncryptKey = nacl.box.keyPair();
 
-const makeMessageService = (did: DID): ServiceEndpoint => ({
-  type: 'MessagingService',
-  id: did + '#messages',
-  serviceEndpoint: `${DEFAULT_HUB}/${did}/messages`,
-});
+const makeMessageService = (did: DID, config: Config): ServiceEndpoint => {
+  const hubBaseUrl = config.hubBaseUrl || DEFAULT_HUB;
+
+  return {
+    type: 'MessagingService',
+    id: did + '#messages',
+    serviceEndpoint: `${hubBaseUrl}/${did}/message`,
+  };
+};
 
 const makeKeyEntry = (
   did: DID,
@@ -50,7 +55,12 @@ const makeEncryptEntry = (
   controller: did,
 });
 
-const makeDocument = (did: DID, signKey: PublicKey, encryptKey: Uint8Array) => {
+const makeDocument = (
+  did: DID,
+  signKey: PublicKey,
+  encryptKey: Uint8Array,
+  config: Config = {}
+) => {
   const keyEntry = makeKeyEntry(
     did,
     signKey,
@@ -73,7 +83,7 @@ const makeDocument = (did: DID, signKey: PublicKey, encryptKey: Uint8Array) => {
     'X25519KeyAgreementKey2019'
   );
 
-  const services = [makeMessageService(did)];
+  const services = [makeMessageService(did, config)];
 
   return {
     '@context': 'https://w3id.org/did/v1',
@@ -87,10 +97,11 @@ const makeDocument = (did: DID, signKey: PublicKey, encryptKey: Uint8Array) => {
 
 export const makeDocumentForKeys = (
   key: AsymmetricKey,
-  encryptKey: nacl.BoxKeyPair
+  encryptKey: nacl.BoxKeyPair,
+  config?: Config
 ): DIDDocument => {
   const did = deriveFromKey(key);
-  return makeDocument(did, key, encryptKey.publicKey);
+  return makeDocument(did, key, encryptKey.publicKey, config);
 };
 
 export const makeDummyDocument = (did: DID): DIDDocument =>

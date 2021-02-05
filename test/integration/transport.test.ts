@@ -42,9 +42,7 @@ describe('transport', () => {
       );
 
       const decryptedMessage = await recipient.decrypt(receivedMessage);
-      const verifiedMessage = await recipient.verify(
-        JSON.parse(decryptedMessage)
-      );
+      const verifiedMessage = await recipient.verify(decryptedMessage);
 
       expect(result.status).toEqual('ok');
       expect(verifiedMessage.issuer).toEqual(sender.did);

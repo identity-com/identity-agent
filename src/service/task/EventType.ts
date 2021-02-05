@@ -14,22 +14,3 @@ export type EventType =
   | CredentialRequestEventType
   | PresentationEventType
   | PresentationRequestEventType;
-
-// TESTING TYPES
-
-// class Event<T extends EventType> {
-//   constructor() {
-//   }
-// }
-//
-// class Handler<T extends EventType> {
-//   handle(e: Event<T>):void {
-//     console.log(e);
-//   }
-// }
-// class NewHandler extends Handler<CommonEventType.New> {}
-//
-// const event = new Event<CommonEventType.New>()
-// const newHandler = new NewHandler();
-//
-// newHandler.handle(event)

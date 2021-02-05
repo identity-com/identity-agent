@@ -43,7 +43,7 @@ describe('did utils', () => {
     it('should throw an error when attempting to validate a foreign DID', () => {
       const shouldFail = () =>
         utils.validateFromKey(
-          `did:someOtherMethod:some-other-identifier` as DID,
+          'did:someOtherMethod:some-other-identifier' as DID,
           publicKey
         );
       expect(shouldFail).toThrow();

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@craco/craco": "^6.0.0",
+    "@headlessui/react": "^0.2.0",
     "@tailwindcss/forms": "^0.2.1",
     "@tailwindcss/postcss7-compat": "^2.0.2",
     "@testing-library/jest-dom": "^5.11.4",
@@ -14,6 +15,7 @@
     "@types/react": "^16.9.53",
     "@types/react-copy-to-clipboard": "^5.0.0",
     "@types/react-dom": "^16.9.8",
+    "@types/socket.io-client": "^1.4.35",
     "autoprefixer": "^9",
     "buffer": "^6.0.3",
     "deploy-aws-s3-cloudfront": "^3.3.0",
@@ -22,6 +24,7 @@
     "react-copy-to-clipboard": "^5.0.3",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.1",
+    "socket.io-client": "2.4.0",
     "stream-browserify": "^3.0.0",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat",
     "typescript": "^4.0.3",

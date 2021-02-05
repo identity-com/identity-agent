@@ -22,21 +22,25 @@ export const passthroughHandler = {
 export const rejectHandler = <R>(
   reject: (reason: Error) => void,
   promise: Promise<R>
-) => ({
-  handle: (failedEvent: FailedEvent) => {
-    reject(failedEvent.reason);
-    return promise;
-  },
-});
+) => {
+  return {
+    handle: (failedEvent: FailedEvent) => {
+      reject(failedEvent.reason);
+      return promise;
+    },
+  };
+};
 export const doneHandler = <R>(
   resolve: (result: R) => void,
   promise: Promise<R>
-) => ({
-  handle: (doneEvent: DoneEvent<R>) => {
-    resolve(doneEvent.result);
-    return promise;
-  },
-});
+) => {
+  return {
+    handle: (doneEvent: DoneEvent<R>) => {
+      resolve(doneEvent.result);
+      return promise;
+    },
+  };
+};
 
 type HandlerMap = Map<
   EventType,
@@ -91,10 +95,13 @@ export abstract class DefaultTask<R> implements Task<R> {
     const reducer = (
       earlierResult: Promise<R>,
       handler: EventHandler<R, E>
-    ): Promise<R> => {
-      const handlerTask = normalizeHandlerResult(handler.handle(event));
-      return earlierResult.then(() => handlerTask.result());
-    };
+    ): Promise<R> =>
+      // once the previous handler is executed,
+      earlierResult.then(() => {
+        // execute the next handler
+        const handlerTask = normalizeHandlerResult(handler.handle(event));
+        return handlerTask.result();
+      });
 
     return handlersForEvent.reduce(
       reducer,

@@ -9,13 +9,7 @@ import { DID, DIDResolver } from '@/api/DID';
 import { encrypt, verifyJWT } from '@/lib/crypto/utils';
 
 export class DefaultCryptoModule implements CryptoModule {
-  readonly did: DID;
-  private resolver: DIDResolver;
-
-  constructor(did: DID, resolver: DIDResolver) {
-    this.did = did;
-    this.resolver = resolver;
-  }
+  constructor(readonly did: DID, private resolver: DIDResolver) {}
 
   createAsymmetricKey(): AsymmetricKey {
     throw Error('unimplemented');

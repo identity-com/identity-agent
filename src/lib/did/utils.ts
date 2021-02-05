@@ -4,12 +4,13 @@ import { encode } from 'bs58';
 import { DID } from '@/api/DID';
 
 export const DID_METHOD = 'civic';
+export const DID_REGEX = /^did:(.+):(.+)$/;
 
 export const toDID = (method: string, identifier: string): DID =>
   `did:${method}:${identifier}` as DID;
 
 const decomposeDID = (did: DID) => {
-  const components = did.match(/^did:(.+):(.+)$/);
+  const components = did.match(DID_REGEX);
   if (!components) throw new Error(`Invalid DID ${did}`);
   const [, method, identifier] = components;
   return { method, identifier };
@@ -43,3 +44,6 @@ export const validateFromKey = (did: DID, key: PublicKey) => {
 
   return derivedDID === did;
 };
+
+export const isDID = (potentialDID: string): potentialDID is DID =>
+  potentialDID.match(DID_REGEX) !== null;

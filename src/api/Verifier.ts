@@ -4,11 +4,8 @@ import { DID } from '@/api/DID';
 import { PresentationRequestTask } from '@/service/task/verifier/PresentationRequest';
 
 export class Verifier extends DefaultAgent {
-  private me: Agent;
-
-  constructor(me: Agent) {
+  constructor(private me: Agent) {
     super(me.document, me.context);
-    this.me = me;
   }
 
   requestPresentation(

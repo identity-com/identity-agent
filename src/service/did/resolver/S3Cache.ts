@@ -25,19 +25,24 @@ type AWSCredentials = {
 };
 export class S3Cache {
   private config: S3Config;
-  private credentials: AWSCredentials | undefined;
+  private readonly credentials: AWSCredentials | undefined;
 
   constructor(config: S3Config = {}) {
     this.config = config;
 
+    this.credentials = this.makeCredentialObject();
+  }
+
+  private makeCredentialObject() {
     // WARNING - for demo purposes only - do not pass AWS keys if using this on a browser in production
-    this.credentials =
-      this.config.awsAccessKeyId && this.config.awsSecretAccessKey
-        ? {
-            accessKeyId: this.config.awsAccessKeyId,
-            secretAccessKey: this.config.awsSecretAccessKey,
-          }
-        : undefined;
+    if (this.config.awsAccessKeyId && this.config.awsSecretAccessKey) {
+      return {
+        accessKeyId: this.config.awsAccessKeyId,
+        secretAccessKey: this.config.awsSecretAccessKey,
+      };
+    }
+
+    return undefined;
   }
 
   private makeClient() {
@@ -49,17 +54,22 @@ export class S3Cache {
     );
   }
 
-  hasPermissions = (): Promise<boolean> => {
+  hasPermissions(): Promise<boolean> {
     const client = this.makeClient();
     const command = new HeadBucketCommand({ Bucket: BUCKET });
     return client
       .send(command)
       .then(() => true)
       .catch((error) => {
-        console.log('S3 Cache disabled - error ' + error);
-        return false;
+        if (error.$metadata.httpStatusCode === 403) {
+          console.log('S3 Cache disabled, permission denied');
+          return false;
+        }
+
+        console.error('S3 Cache disabled - error ', error);
+        throw error;
       });
-  };
+  }
 
   get = async (did: DID): Promise<DIDDocument> => {
     const client = this.makeClient();

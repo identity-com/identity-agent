@@ -4,6 +4,7 @@ import { JWT } from '@/service/crypto/CryptoModule';
 import { JWE, JWTVerified } from 'did-jwt';
 import { Task } from '@/service/task/Task';
 import { DummyTask } from '@/service/task/DummyTask';
+import { Response } from '@/service/transport/Transport';
 import {
   Subject,
   Agent,
@@ -12,18 +13,13 @@ import {
   Identity,
   Builder,
 } from './internal';
+import { Registrar } from '@/service/agent/builder/Registrar';
 
 const isIdentity = (identity: DID | Identity): identity is Identity =>
   Object.prototype.hasOwnProperty.call(identity, 'did');
 
 export class DefaultAgent implements Agent {
-  readonly document: DIDDocument;
-  readonly context: Context;
-
-  constructor(document: DIDDocument, context: Context) {
-    this.document = document;
-    this.context = context;
-  }
+  constructor(readonly document: DIDDocument, readonly context: Context) {}
 
   get did(): DID {
     return this.document.id as DID;
@@ -61,6 +57,10 @@ export class DefaultAgent implements Agent {
     return this.context.crypto.decrypt(jwe);
   }
 
+  send(message: Record<string, any>, recipient: DID): Promise<Response> {
+    return this.context.transport.send(recipient, message, 'Message');
+  }
+
   // temp
   startSlowTask(delay?: number): Task<string> {
     return this.context.taskMaster.register(new DummyTask(delay));
@@ -71,7 +71,7 @@ export class DefaultAgent implements Agent {
     return this.context.taskMaster.allResults();
   }
 
-  static for(identity: DID | Identity, context?: Context) {
+  static for(identity: DID | Identity, context?: Partial<Context>) {
     if (isIdentity(identity)) {
       return new Builder(identity.did).withKeys(
         identity.signingKey,
@@ -82,7 +82,7 @@ export class DefaultAgent implements Agent {
     return new Builder(identity, context);
   }
 
-  static register(context?: Context) {
-    return new Builder.Registrar(context);
+  static register(context?: Partial<Context>) {
+    return new Registrar(context);
   }
 }

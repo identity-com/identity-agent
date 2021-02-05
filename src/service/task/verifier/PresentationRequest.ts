@@ -12,24 +12,16 @@ export enum PresentationRequestEventType {
 }
 
 export class PresentationReceivedEvent extends TaskEvent<PresentationRequestEventType.PresentationReceived> {
-  readonly presentation: Presentation;
-
-  constructor(presentation: Presentation) {
+  constructor(readonly presentation: Presentation) {
     super(PresentationRequestEventType.PresentationReceived);
-    this.presentation = presentation;
   }
 }
 
 export class PresentationRequestTask extends DefaultTask<Presentation> {
   static TYPE = 'PresentationRequestTask';
 
-  readonly request?: PresentationRequest;
-  readonly subject?: DID;
-
-  constructor(request?: PresentationRequest, subject?: DID) {
+  constructor(readonly request?: PresentationRequest, readonly subject?: DID) {
     super(PresentationRequestTask.TYPE);
-    this.request = request;
-    this.subject = subject;
 
     this.initialize();
 
@@ -45,6 +37,10 @@ export class PresentationRequestTask extends DefaultTask<Presentation> {
       presentationReceivedEventHandler,
       true
     );
+  }
+
+  receivePresentation(presentation: Presentation): Promise<Presentation> {
+    return this.emit(new PresentationReceivedEvent(presentation));
   }
 
   protected initialize(): void {}

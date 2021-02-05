@@ -9,19 +9,23 @@ import {
 } from '@/service/did/generator/generate';
 import { AsymmetricKey } from '@/service/crypto/CryptoModule';
 import nacl from 'tweetnacl';
+import { DID_METHOD } from '@/lib/did/utils';
+import { always, memoizeWith } from 'ramda';
 
 export class Registry {
   private s3Cache: S3Cache;
-  private readonly hasS3Permissions: Promise<boolean>;
 
-  constructor(config: Config) {
+  constructor(private config: Config) {
     this.s3Cache = new S3Cache(config);
-
-    this.hasS3Permissions = this.s3Cache.hasPermissions();
   }
 
+  private hasS3Permissions: () => Promise<boolean> = memoizeWith(
+    always(''),
+    () => this.s3Cache.hasPermissions()
+  );
+
   async register(document: DIDDocument) {
-    if (await this.hasS3Permissions) {
+    if (await this.hasS3Permissions()) {
       return this.s3Cache.put(document);
     }
 
@@ -32,12 +36,12 @@ export class Registry {
     signKey: AsymmetricKey,
     encryptKey: nacl.BoxKeyPair
   ): Promise<DID> {
-    const document = makeDocumentForKeys(signKey, encryptKey);
+    const document = makeDocumentForKeys(signKey, encryptKey, this.config);
     return this.register(document);
   }
 
   private async getDocument(did: DID): Promise<DIDDocument> {
-    if (await this.hasS3Permissions) {
+    if (await this.hasS3Permissions()) {
       return this.s3Cache.get(did);
     }
 
@@ -47,7 +51,7 @@ export class Registry {
   resolvers() {
     return {
       dummy: async (did: string | DID) => makeDummyDocument(did as DID),
-      civic: async (did: string | DID) => this.getDocument(did as DID),
+      [DID_METHOD]: async (did: string | DID) => this.getDocument(did as DID),
     };
   }
 }

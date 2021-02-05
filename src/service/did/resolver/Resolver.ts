@@ -11,7 +11,7 @@ import { AgentStorage } from '@/service/storage/AgentStorage';
 import { Config } from '@/api/Agent';
 import { Registry } from '@/service/did/resolver/Registry';
 
-const STORAGE_FOLDER = 'dids';
+export const STORAGE_FOLDER = 'dids';
 
 const makeRegistry = (config: Config) => new Registry(config).resolvers();
 

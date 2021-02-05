@@ -4,7 +4,6 @@ import { Agent } from 'identity-agent';
 
 import { Button } from './Button';
 import { CheckIcon } from './icons/CheckIcon';
-import { FilledCheckIcon } from './icons/FilledCheckIcon';
 
 type Props = { agent: Agent; showIcon?: boolean } & Pick<
   ComponentProps<typeof CopyToClipboard>,
@@ -13,14 +12,10 @@ type Props = { agent: Agent; showIcon?: boolean } & Pick<
 
 export const DIDDisplay = ({ agent, onCopy, showIcon }: Props) => (
   <>
-    <div className="rounded-md bg-green-50 p-4">
+    <div className="rounded-md bg-blue-50 p-4">
       <div className="flex items-center">
-        <div className="flex-shrink-0">
-          <FilledCheckIcon />
-        </div>
         <div className="ml-3 flex items-center text-xl">
-          <div className="text-green-800">
-            <div className="font-bold">DID Generated</div>
+          <div className="text-blue-800">
             <code className="break-all">{agent.did}</code>
           </div>
           <div className="mt-3 md:mt-0 ml-6">

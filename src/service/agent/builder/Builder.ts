@@ -5,18 +5,15 @@ import {
   AsymmetricKeyInput,
 } from '@/service/crypto/CryptoModule';
 import nacl from 'tweetnacl';
-import {
-  generateEncryptKey,
-  generateSignKey,
-  normalizePrivateKey,
-} from '@/lib/crypto/utils';
+import { normalizePrivateKey } from '@/lib/crypto/utils';
 import { WebStorage } from '@/service/storage/WebStorage';
 import { defaultDIDResolver } from '@/service/did/resolver/Resolver';
 import { PrivateKeyCrypto } from '@/service/crypto/PrivateKeyCrypto';
 import { DefaultCryptoModule } from '@/service/crypto/DefaultCryptoModule';
 import { DefaultTaskMaster } from '@/service/task/TaskMaster';
 import { DefaultAgent } from '@/api/internal';
-import { Registry } from '@/service/did/resolver/Registry';
+import { DefaultHttp } from '@/service/transport/http/DefaultHttp';
+import { HttpTransport } from '@/service/transport/HttpTransport';
 
 export class Builder {
   did: DID;
@@ -70,45 +67,12 @@ export class Builder {
       this.context.storage
     );
 
+    this.context.transport = new HttpTransport(
+      new DefaultHttp(),
+      this.context.didResolver,
+      this.context.crypto
+    );
+
     return new DefaultAgent(document, this.context as Context);
   }
-
-  static Registrar = class {
-    signingKey?: AsymmetricKey;
-    encryptionKey?: nacl.BoxKeyPair;
-    context: Partial<Context>;
-
-    constructor(context: Partial<Context> = {}) {
-      this.context = context;
-    }
-
-    withKeys(
-      signingKey: AsymmetricKeyInput,
-      encryptionKey: nacl.BoxKeyPair
-    ): this {
-      this.signingKey = normalizePrivateKey(signingKey);
-      this.encryptionKey = encryptionKey; // TODO allow other formats e.g. base58
-      return this;
-    }
-
-    generateKeys() {
-      const signingKey = generateSignKey();
-      const encryptionKey = generateEncryptKey();
-      return this.withKeys(signingKey, encryptionKey);
-    }
-
-    async build() {
-      if (!this.signingKey) this.generateKeys();
-
-      if (this.signingKey && this.encryptionKey) {
-        const registry = new Registry(this.context.config || {});
-        const did = await registry.registerForKeys(
-          this.signingKey,
-          this.encryptionKey
-        );
-        const builder = new Builder(did, this.context);
-        return builder.withKeys(this.signingKey, this.encryptionKey).build();
-      } else throw new Error('Missing keys');
-    }
-  };
 }

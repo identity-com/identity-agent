@@ -24,7 +24,6 @@ export class PresentationTask extends DefaultTask<void> {
   static TYPE = 'PresentationTask';
 
   private request?: PresentationRequest;
-  // private confirmed?: boolean;
 
   getRequest() {
     return this.request;

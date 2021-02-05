@@ -19,13 +19,7 @@ const isIdentity = (identity: DID | Identity): identity is Identity =>
   Object.prototype.hasOwnProperty.call(identity, 'did');
 
 export class DefaultAgent implements Agent {
-  readonly document: DIDDocument;
-  readonly context: Context;
-
-  constructor(document: DIDDocument, context: Context) {
-    this.document = document;
-    this.context = context;
-  }
+  constructor(readonly document: DIDDocument, readonly context: Context) {}
 
   get did(): DID {
     return this.document.id as DID;

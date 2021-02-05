@@ -14,10 +14,8 @@ import { always, memoizeWith } from 'ramda';
 
 export class Registry {
   private s3Cache: S3Cache;
-  private config: Config;
 
-  constructor(config: Config) {
-    this.config = config;
+  constructor(private config: Config) {
     this.s3Cache = new S3Cache(config);
   }
 

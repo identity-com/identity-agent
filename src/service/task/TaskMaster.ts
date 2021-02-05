@@ -60,13 +60,7 @@ const deserializeTask = (serializedTask: SerializedTask) => {
 };
 
 export class DefaultTaskMaster implements TaskMaster {
-  private storage: AgentStorage;
-  private tasks: Task<any>[];
-
-  constructor(storage: AgentStorage, tasks: Task<any>[]) {
-    this.storage = storage;
-    this.tasks = tasks;
-  }
+  constructor(private storage: AgentStorage, private tasks: Task<any>[]) {}
 
   static async rehydrate(storage: AgentStorage): Promise<TaskMaster> {
     const tasksInStorage = await storage.findKeys(STORAGE_FOLDER);

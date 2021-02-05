@@ -16,15 +16,11 @@ const defaultTransportOptions: TransportOptions = {
 };
 
 export class HttpTransport implements Transport {
-  private http: Http;
-  private resolve: DIDResolver;
-  private crypto: CryptoModule;
-
-  constructor(http: Http, didResolver: DIDResolver, crypto: CryptoModule) {
-    this.http = http;
-    this.resolve = didResolver;
-    this.crypto = crypto;
-  }
+  constructor(
+    private http: Http,
+    private resolve: DIDResolver,
+    private crypto: CryptoModule
+  ) {}
 
   private async makeHttpBody(
     payload: any,

@@ -5,11 +5,8 @@ import {
 import { Agent, DefaultAgent } from './internal';
 
 export class Subject extends DefaultAgent {
-  private me: Agent;
-
-  constructor(me: Agent) {
+  constructor(private me: Agent) {
     super(me.document, me.context);
-    this.me = me;
   }
 
   resolvePresentationRequest(request: PresentationRequest): PresentationTask {

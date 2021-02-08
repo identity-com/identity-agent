@@ -8,6 +8,7 @@ import { pick } from 'ramda';
 export class CredentialConstraints {}
 
 export type PresentationRequest = {
+  requestId: string;
   verifier: DID;
   constraints: CredentialConstraints;
 };

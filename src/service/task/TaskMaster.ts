@@ -1,4 +1,4 @@
-import { Task } from '@/service/task/Task';
+import { SerializedTask, Task } from '@/service/task/Task';
 import { AgentStorage } from '@/service/storage/AgentStorage';
 import { DummyTask } from '@/service/task/DummyTask';
 import {
@@ -12,39 +12,29 @@ import { DID } from '@/api/DID';
 const STORAGE_FOLDER = 'tasks';
 
 export interface TaskMaster {
-  register<T extends Task<any>>(task: T): T;
+  register<T extends Task<any, any>>(task: T): T;
   allResults(): Promise<any[]>;
 }
 
 // A static mapping from task name to constructor
 // this implementation will likely change in the future
 // to allow for custom tasks
-const taskRegistry: Record<string, () => Task<any>> = {
+const taskRegistry: Record<
+  string,
+  <Type, Contents>() => Task<Type, Contents>
+> = {
   [DummyTask.TYPE]: () => new DummyTask(),
-  [PresentationTask.TYPE]: () => new PresentationTask(),
-  [PresentationRequestTask.TYPE]: (
-    request?: PresentationRequest,
-    subject?: DID
-  ) => new PresentationRequestTask(request, subject),
-  [CredentialRequestTask.TYPE]: () => new CredentialRequestTask(),
 };
 
-type SerializedTask = {
-  type: string;
-  contents: Record<string, any>;
+const serializeTask = <Contents>(
+  task: Task<any, Contents>
+): SerializedTask<Contents> => {
+  return task.serialize();
 };
 
-const serializeTask = (task: Task<any>): SerializedTask => {
-  const type = task.type;
-  const contents = task.serialize();
-
-  return {
-    type,
-    contents,
-  };
-};
-
-const deserializeTask = (serializedTask: SerializedTask) => {
+const deserializeTask = <Contents>(
+  serializedTask: SerializedTask<Contents>
+) => {
   const creatorFunction = taskRegistry[serializedTask.type];
 
   if (!creatorFunction)
@@ -54,7 +44,7 @@ const deserializeTask = (serializedTask: SerializedTask) => {
 
   const unpopulatedTask = creatorFunction();
 
-  unpopulatedTask.deserialize(serializedTask.contents);
+  unpopulatedTask.deserialize(serializedTask);
 
   return unpopulatedTask;
 };

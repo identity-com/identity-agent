@@ -3,6 +3,6 @@ import { CommonEventType } from '@/service/task/EventType';
 
 export class FailedEvent extends TaskEvent<CommonEventType.Failed> {
   constructor(readonly reason: Error) {
-    super(CommonEventType.Failed);
+    super(CommonEventType.Failed, { failureReason: reason.message });
   }
 }

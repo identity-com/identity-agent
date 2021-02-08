@@ -1,4 +1,4 @@
-import { Task } from '@/service/task/Task';
+import { SerializedTask, Task } from '@/service/task/Task';
 import { EventType } from '@/service/task/EventType';
 import { EventHandler } from '@/service/task/EventHandler';
 import { v4 as uuid } from 'uuid';
@@ -29,7 +29,12 @@ export class WrappedTask<R> implements Task<R> {
     return this.promise;
   }
 
-  serialize(): Record<string, any> {
-    return {};
+  serialize(): SerializedTask {
+    return {
+      type: this.type,
+      id: this.id,
+      state: {},
+      done: true, // mark as done to avoid serializing "ephemeral" tasks
+    };
   }
 }

@@ -1,5 +1,5 @@
-import { EventType } from '@/service/task/EventType';
+export type EventPayload = { [k: string]: any };
 
-export class TaskEvent<T extends EventType> {
-  constructor(readonly type: T) {}
+export class TaskEvent {
+  constructor(readonly payload: EventPayload) {}
 }

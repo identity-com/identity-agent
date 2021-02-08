@@ -1,12 +1,14 @@
-import { Task } from '@/service/task/Task';
+import { SerializedTask, Task } from '@/service/task/Task';
 import { v4 as uuid } from 'uuid';
 import { WrappedTask } from '@/service/task/WrappedTask';
-import { TaskEvent } from '@/service/task/TaskEvent';
+import { EventPayload, TaskEvent } from '@/service/task/TaskEvent';
 import { CommonEventType, EventType } from '@/service/task/EventType';
 import { EventHandler } from '@/service/task/EventHandler';
 import isPromise from 'is-promise';
 import { DoneEvent } from '@/service/task/DoneEvent';
 import { FailedEvent } from '@/service/task/FailedEvent';
+import { mergeDeepRight, pick, prop } from 'ramda';
+import { QueryablePromise, queryablePromise } from '@/lib/util';
 
 // Do not use instanceof Promise as different runtimes will use a different promise prototype
 // Promises are essentially duck-typed "thenables". Not innate language features
@@ -50,24 +52,38 @@ type HandlerMap = Map<
   }
 >;
 
-export abstract class DefaultTask<R> implements Task<R> {
+export abstract class DefaultTask<R> implements Task<R, EventPayload[]> {
   readonly id: string;
   readonly type: string;
 
-  protected donePromise: Promise<R>;
+  protected donePromise: QueryablePromise<R>;
   protected resolve!: (result: R) => void;
   protected reject!: (reason: Error) => void;
 
   private handlers: HandlerMap = new Map();
 
-  protected constructor(type: string) {
+  private events: EventPayload[];
+
+  protected constructor(type: string, events: TaskEvent[] = []) {
     this.id = uuid();
     this.type = type;
-    this.donePromise = new Promise((resolve, reject) => {
-      this.resolve = resolve;
-      this.reject = reject;
-    });
+    this.events = events;
 
+    this.donePromise = queryablePromise(
+      new Promise((resolve, reject) => {
+        this.resolve = resolve;
+        this.reject = reject;
+      })
+    );
+
+    this.initialize();
+  }
+
+  state(): EventPayload {
+    return this.events.reduce(mergeDeepRight, {});
+  }
+
+  protected initialize() {
     this.on(CommonEventType.New, passthroughHandler, true);
     this.on(CommonEventType.Dehydrate, passthroughHandler, true);
     this.on(CommonEventType.Rehydrate, passthroughHandler, true);
@@ -83,9 +99,22 @@ export abstract class DefaultTask<R> implements Task<R> {
     );
   }
 
-  protected abstract initialize(): void;
-  abstract deserialize(serialized: Record<string, any>): void;
-  abstract serialize(): Record<string, any>;
+  protected deserialize(serialized: SerializedTask<EventPayload>): void {
+    this.id = serialized.id;
+    this.type = serialized.type;
+    this.events = serialized.state;
+
+    this.initialize();
+  }
+
+  protected serialize(): SerializedTask<EventPayload[]> {
+    return {
+      type: this.type,
+      id: this.id,
+      state: this.events,
+      done: this.donePromise.isFulfilled(),
+    };
+  }
 
   private reduceHandlers<E extends EventType>(event: TaskEvent<E>): Promise<R> {
     const normalizeHandlerResult = <T>(result: Task<T> | Promise<T>): Task<T> =>
@@ -110,6 +139,7 @@ export abstract class DefaultTask<R> implements Task<R> {
   }
 
   emit<E extends EventType>(event: TaskEvent<E>): Promise<R> {
+    this.events.push(event);
     return this.reduceHandlers(event);
   }
 

@@ -1,31 +1,25 @@
-import { Task } from '@/service/task/cqrs/Task';
 import { CommandHandler } from '@/service/task/cqrs/CommandHandler';
 import { Command } from '@/service/task/cqrs/Command';
-import { find, propEq } from 'ramda';
+import { TaskRepository } from '@/service/task/cqrs/TaskRepository';
 
 export class CommandDispatcher {
-  private readonly tasks: Task<any>[];
   private handlers: {
     // "key" is not recognised by eslint as a key identifier
     // eslint-disable-next-line no-undef
     [key: string]: CommandHandler<typeof key, Command<typeof key>, any>[];
   };
+  private taskRepository: TaskRepository;
 
-  constructor() {
-    this.tasks = [];
+  constructor(taskRepository: TaskRepository) {
+    this.taskRepository = taskRepository;
     this.handlers = {};
   }
 
-  registerTask(task: Task<any>) {
-    this.tasks.push(task);
-  }
-
   registerCommandHandler<
-    T extends Task<S>,
-    S,
-    C extends Command<CT>,
-    CT extends string
-  >(commandType: CT, handler: CommandHandler<CT, C, T>) {
+    S, // Task state
+    C extends Command<CT>, // command type
+    CT extends string // command name string
+  >(commandType: CT, handler: CommandHandler<CT, C, S>) {
     let handlers = this.handlers[commandType];
 
     if (!handlers) {
@@ -44,7 +38,7 @@ export class CommandDispatcher {
 
     if (!handlers) return Promise.resolve();
 
-    const task = find(propEq('id', command.taskId), this.tasks);
+    const task = this.taskRepository.get(command.taskId);
 
     if (!task) throw new Error(`No task found with ID ${command.taskId}`);
 

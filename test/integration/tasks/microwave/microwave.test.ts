@@ -1,39 +1,69 @@
-import { EventBus } from '../../../../src/service/task/cqrs/EventBus';
-import { CommandDispatcher } from '../../../../src/service/task/cqrs/CommandDispatcher';
-import { Microwave } from '../../../../src/service/task/cqrs/microwave/Microwave';
+import { MicrowaveFlow } from '../../../../src/service/task/cqrs/microwave/MicrowaveFlow';
 import { CommandType } from '../../../../src/service/task/cqrs/Command';
+import {
+  DefaultTaskMaster,
+  TaskMaster,
+} from '../../../../src/service/task/TaskMaster';
+import {
+  AgentStorage,
+  StorageKey,
+} from '../../../../src/service/storage/AgentStorage';
+import { Task } from '../../../../src/service/task/cqrs/Task';
 
 describe('microwave', () => {
-  let commandDispatcher: CommandDispatcher;
-  let eventBus: EventBus;
+  let taskMaster: TaskMaster;
+  let storage: AgentStorage;
 
   beforeEach(() => {
-    eventBus = new EventBus();
-    commandDispatcher = new CommandDispatcher();
+    const cache: Record<string, any> = {};
+    const toKey = (storageKey: StorageKey): string =>
+      Array(storageKey).flat().join(',');
+    storage = {
+      put(key, value) {
+        cache[toKey(key)] = value;
+        return Promise.resolve();
+      },
+      get(key) {
+        return cache[toKey(key)];
+      },
+      remove(key) {
+        delete cache[toKey(key)];
+        return Promise.resolve();
+      },
+      findKeys(keyFragment) {
+        const matchedKeys = Object.keys(cache).filter((key) =>
+          key.startsWith(toKey(keyFragment))
+        );
+        return Promise.all(matchedKeys.map((key) => cache[key]));
+      },
+    };
 
-    commandDispatcher.registerCommandHandler(
-      Microwave.CommandType.StartCooking,
-      new Microwave.StartCookingCommandHandler(eventBus)
+    taskMaster = new DefaultTaskMaster({ storage });
+
+    taskMaster.registerCommandHandler(
+      MicrowaveFlow.CommandType.StartCooking,
+      new MicrowaveFlow.StartCookingCommandHandler()
     );
 
-    commandDispatcher.registerCommandHandler(
+    taskMaster.registerCommandHandler(
       CommandType.Rehydrate,
-      new Microwave.RehydrateCommandHandler(eventBus)
+      new MicrowaveFlow.RehydrateCommandHandler()
     );
 
-    eventBus.registerHandler(
-      Microwave.EventType.Done,
-      new Microwave.DoneEventHandler()
+    taskMaster.registerEventHandler(
+      MicrowaveFlow.EventType.Done,
+      new MicrowaveFlow.DoneEventHandler()
     );
   });
 
   it('executes in 2 seconds', async () => {
-    const microwaveDone = eventBus.waitForEvent(Microwave.EventType.Done);
+    jest.setTimeout(3000);
+    const microwaveDone = taskMaster.waitForEvent(MicrowaveFlow.EventType.Done);
 
-    const task = new Microwave.MicrowaveTask();
+    const task = new Task<MicrowaveFlow.MicrowaveState>();
 
-    commandDispatcher.registerTask(task);
-    await commandDispatcher.execute(Microwave.CommandType.StartCooking, {
+    taskMaster.registerTask(task);
+    await taskMaster.execute(MicrowaveFlow.CommandType.StartCooking, {
       taskId: task.id,
       durationMs: 2000,
     });

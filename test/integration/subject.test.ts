@@ -12,7 +12,7 @@ import { Subject } from '../../src/api/Subject';
 
 const receiverDID = 'did:dummy:receiver';
 
-describe('Subject flows', () => {
+describe('PresentationFlow flows', () => {
   let subject: Subject;
 
   beforeEach(async () => {

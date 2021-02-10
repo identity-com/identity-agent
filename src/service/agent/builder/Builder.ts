@@ -63,9 +63,9 @@ export class Builder {
     const document = await this.context.didResolver(this.did);
 
     // rehydrate the tasks only after resolving the DID
-    this.context.taskMaster = await DefaultTaskMaster.rehydrate(
-      this.context.storage
-    );
+    this.context.taskMaster = await DefaultTaskMaster.rehydrate({
+      storage: this.context.storage,
+    });
 
     this.context.transport = new HttpTransport(
       new DefaultHttp(),

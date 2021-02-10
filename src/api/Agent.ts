@@ -7,11 +7,12 @@ import {
   JWT,
 } from '@/service/crypto/CryptoModule';
 import { JWE, JWTVerified } from 'did-jwt';
-import { Task } from '@/service/task/Task';
 import { AgentStorage } from '@/service/storage/AgentStorage';
 import { TaskMaster } from '@/service/task/TaskMaster';
 import { Transport, Response } from '@/service/transport/Transport';
 import nacl from 'tweetnacl';
+import { Task } from '@/service/task/cqrs/Task';
+import { MicrowaveFlow } from '@/service/task/cqrs/microwave/MicrowaveFlow';
 
 export type Config = {
   // include this only while we keep an S3Cache DID resolver
@@ -58,7 +59,7 @@ export abstract class Agent {
     recipient: DID
   ): Promise<Response>;
 
-  abstract startSlowTask(delay?: number): Task<string>;
+  abstract startSlowTask(delay?: number): Task<MicrowaveFlow.MicrowaveState>;
 
   abstract allResults(): Promise<any[]>;
 

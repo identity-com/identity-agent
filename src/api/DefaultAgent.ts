@@ -2,8 +2,6 @@ import { DIDDocument } from 'did-resolver';
 import { DID } from '@/api/DID';
 import { JWT } from '@/service/crypto/CryptoModule';
 import { JWE, JWTVerified } from 'did-jwt';
-import { Task } from '@/service/task/Task';
-import { DummyTask } from '@/service/task/DummyTask';
 import { Response } from '@/service/transport/Transport';
 import {
   Subject,
@@ -14,6 +12,8 @@ import {
   Builder,
 } from './internal';
 import { Registrar } from '@/service/agent/builder/Registrar';
+import { MicrowaveFlow } from '@/service/task/cqrs/microwave/MicrowaveFlow';
+import { Task } from '@/service/task/cqrs/Task';
 
 const isIdentity = (identity: DID | Identity): identity is Identity =>
   Object.prototype.hasOwnProperty.call(identity, 'did');
@@ -62,13 +62,28 @@ export class DefaultAgent implements Agent {
   }
 
   // temp
-  startSlowTask(delay?: number): Task<string> {
-    return this.context.taskMaster.register(new DummyTask(delay));
+  startSlowTask(delay?: number): Task<MicrowaveFlow.MicrowaveState> {
+    const task = new Task<MicrowaveFlow.MicrowaveState>();
+    this.context.taskMaster.registerTask(task);
+
+    const command: MicrowaveFlow.StartCookingCommand = {
+      durationMS: delay || 2000,
+      taskId: task.id,
+    };
+
+    this.context.taskMaster.dispatch(
+      MicrowaveFlow.CommandType.StartCooking,
+      command
+    );
+
+    return task;
   }
 
   // temp
   allResults(): Promise<any[]> {
-    return this.context.taskMaster.allResults();
+    // TODO
+    throw new Error('Not implemented');
+    // return this.context.taskMaster.allResults();
   }
 
   static for(identity: DID | Identity, context?: Partial<Context>) {

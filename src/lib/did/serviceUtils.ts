@@ -4,6 +4,7 @@ import { propEq } from 'ramda';
 
 const payloadTypeToService: Record<PayloadType, string> = {
   Presentation: 'AgentService',
+  PresentationRequest: 'MessagingService',
   Message: 'MessagingService',
 };
 

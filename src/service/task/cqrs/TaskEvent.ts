@@ -1,4 +1,4 @@
 export type EventPayload = { [k: string]: any };
 
 // @ts-ignore
-export interface TaskEvent<T extends string> {}
+export type TaskEvent<ET extends string, S> = Partial<S>;

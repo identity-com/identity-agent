@@ -1,12 +1,5 @@
 import { generateEncryptKey, generateSignKey } from '@/lib/crypto/utils';
-import {
-  ConfirmPresentationEvent,
-  PresentationRequest,
-  PresentationTask,
-} from '@/service/task/subject/Presentation';
 import { Agent, Config, Identity } from '@/api/internal';
-import { CommonEventType } from '@/service/task/EventType';
-import { TaskEvent } from '@/service/task/TaskEvent';
 import { DID } from '@/api/DID';
 import { v4 as uuid } from 'uuid';
 import {
@@ -16,6 +9,8 @@ import {
 } from '@aws-sdk/client-s3';
 import { filterOutMissingProps } from '@/lib/util';
 import { streamToString, SupportedStream } from '@/lib/transport/streams';
+import { PresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
+import { Task } from '@/service/task/cqrs/Task';
 
 const createDID = async (): Promise<Identity> => {
   const signingKey = generateSignKey();
@@ -28,13 +23,18 @@ const createDID = async (): Promise<Identity> => {
 };
 
 const resolvePresentationRequestTaskWithDummyCredentials = (
-  task: PresentationTask
-) =>
-  task.emit(
-    new ConfirmPresentationEvent(task.getRequest() as PresentationRequest, {
-      dummy: 'credentials',
-    })
+  agent: Agent,
+  task: Task<PresentationFlow.PresentationState>
+) => {
+  const command: PresentationFlow.ResolveCommand = {
+    response: {},
+    taskId: task.id,
+  };
+  agent.context.taskMaster.dispatch(
+    PresentationFlow.CommandType.Resolve,
+    command
   );
+};
 
 // Temporary demo mechanism for sending messages
 // will likely be replaced by Identity Hubs
@@ -86,16 +86,9 @@ const getMessage = async (did: DID, id: string, config?: Config) => {
   return JSON.parse(stringifiedDocument);
 };
 
-class NewEvent extends TaskEvent<CommonEventType.New> {
-  constructor() {
-    super(CommonEventType.New);
-  }
-}
-
 export {
   createDID,
   resolvePresentationRequestTaskWithDummyCredentials,
-  NewEvent,
   getMessage,
   sendMessage,
 };

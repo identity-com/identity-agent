@@ -35,7 +35,7 @@ const makeSimpleTask = <R>(
   })();
 };
 
-describe('Verifier flows', () => {
+describe('PresentationRequestFlow flows', () => {
   let verifier: Verifier;
 
   beforeEach(async () => {

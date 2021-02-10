@@ -6,12 +6,23 @@ import { EventBus } from '@/service/task/cqrs/EventBus';
 export abstract class CommandHandler<
   CT extends string,
   C extends Command<CT>,
-  T extends Task<any>
+  S
 > {
-  constructor(protected readonly eventBus: EventBus) {}
+  // TODO add IoC library or refactor
+  private _eventBus: EventBus | undefined;
 
-  abstract execute(command: C, task: T): Promise<void>;
-  emit<ET extends string>(type: ET, event: TaskEvent<ET>): boolean {
-    return this.eventBus.emit(type, event);
+  set eventBus(eventBus: EventBus) {
+    this._eventBus = eventBus;
+  }
+
+  abstract execute(command: C, task: Task<S>): Promise<void>;
+  emit<ET extends string>(
+    type: ET,
+    event: TaskEvent<ET, S>,
+    task: Task<S>
+  ): boolean {
+    if (!this._eventBus)
+      throw new Error('Unable to emit from this handler - missing event bus');
+    return this._eventBus.emit(type, event, task);
   }
 }

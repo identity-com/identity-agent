@@ -1,99 +1,177 @@
 import { example as did } from '../fixtures/did';
 import { Agent } from '@/api/Agent';
-import {
-  ConfirmPresentationEvent,
-  ConfirmPresentationEventHandler,
-  CredentialConstraints,
-  Presentation,
-  PresentationEventType,
-  PresentationRequest,
-} from '../../src/service/task/subject/Presentation';
-import { Subject } from '../../src/api/Subject';
+import { Subject } from '@/api/Subject';
+import { xprv as dummyXprv } from '../fixtures/keys';
+import * as nacl from 'tweetnacl';
+import { Task } from '@/service/task/cqrs/Task';
+import { EventType as CommonEventType } from '@/service/task/cqrs/TaskEvent';
+import { StubPresenter } from '@/service/credential/Presenter';
+import { PresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
+import { RequestInputFlow } from '../../src/service/task/cqrs/requestInput/RequestInput';
+import { TaskContext } from '../../src/service/task/TaskMaster';
+import CommandType = PresentationFlow.CommandType;
+import ConfirmCommand = PresentationFlow.ConfirmCommand;
+import EventType = PresentationFlow.EventType;
+import PresentationState = PresentationFlow.PresentationState;
+import ConfirmCommandHandler = PresentationFlow.ConfirmCommandHandler;
+import Callback = RequestInputFlow.Callback;
+import RejectCommand = PresentationFlow.RejectCommand;
 
-const receiverDID = 'did:dummy:receiver';
+const verifierDID = 'did:dummy:receiver';
+
+// this command handler rejects a presentation request if the verifier
+// is not verifierDID
+class RejectIfVerifierIsNotRecognisedHandler extends ConfirmCommandHandler {
+  async execute(command: ConfirmCommand, task: Task<PresentationState>) {
+    if (task.state.verifier === verifierDID) {
+      return super.execute(command, task);
+    }
+
+    this.emit(
+      EventType.Rejected,
+      {
+        rejectedAt: new Date(),
+        rejectionReason: 'Unrecognised DID ' + task.state.verifier,
+      },
+      task
+    );
+
+    this.emit(CommonEventType.Done, {}, task);
+  }
+}
 
 describe('PresentationFlow flows', () => {
   let subject: Subject;
 
+  const presentationRequest = { question: 'What is your name?' };
+  const presentation = { answer: 'It is Arthur, King of the Britons' };
+
   beforeEach(async () => {
-    subject = (await Agent.for(did).build()).asSubject();
+    const agent = await Agent.for(did, {
+      credential: { presenter: new StubPresenter(presentation) },
+    })
+      .withKeys(dummyXprv, nacl.box.keyPair())
+      .build();
+    subject = agent.asSubject();
   });
 
-  describe('Presentation Requests', () => {
-    const request = {
-      verifier: receiverDID,
-      constraints: new CredentialConstraints(),
-    } as PresentationRequest;
-    const presentation = new Presentation();
+  it('can resolve a presentation request with no confirmation handlers', async () => {
+    const presentationTask = subject.resolvePresentationRequest(
+      presentationRequest,
+      verifierDID
+    );
 
-    it('can resolve a presentation request with no confirmation handlers', async () => {
-      const resolveTask = subject.resolvePresentationRequest(request);
+    await presentationTask.waitForDone();
 
-      resolveTask.emit(new ConfirmPresentationEvent(request, presentation));
+    expect(presentationTask.state.presentation).toEqual(presentation);
+  });
 
-      await resolveTask.result();
-    });
+  it('can resolve a presentation request with a confirmation handler', async () => {
+    subject.context.taskMaster.registerCommandHandler(
+      CommandType.Confirm,
+      new RejectIfVerifierIsNotRecognisedHandler(),
+      true
+    );
 
-    it('can resolve a presentation request with a confirmation handler', async () => {
-      const confirmImmediatelyHandler = {
-        handle: () => Promise.resolve(),
-      };
-      const resolveTask = subject
-        .resolvePresentationRequest(request)
-        .on(
-          PresentationEventType.ConfirmPresentation,
-          confirmImmediatelyHandler
-        );
+    const rejectedPresentationTask = subject.resolvePresentationRequest(
+      presentationRequest,
+      'did:dummy:some-unrecognised-did'
+    );
 
-      resolveTask.emit(new ConfirmPresentationEvent(request, presentation));
+    const acceptedPresentationTask = subject.resolvePresentationRequest(
+      presentationRequest,
+      verifierDID
+    );
 
-      await resolveTask.result();
+    await acceptedPresentationTask.waitForDone();
+    await rejectedPresentationTask.waitForDone();
+
+    expect(acceptedPresentationTask.state.rejectionReason).not.toBeDefined();
+    expect(rejectedPresentationTask.state.rejectionReason).toBeDefined();
+  });
+
+  describe('with a requestInput subtask', () => {
+    const callback: Record<string, Callback<string>> = {};
+    type AugmentedPesentationState = PresentationState & { value: string };
+
+    beforeEach(() => {
+      const requestInputTaskGenerator = RequestInputFlow.create(
+        subject.context.taskMaster,
+        (parentTaskId, value: string) => {
+          const command: ConfirmCommand & { value: string } = {
+            taskId: parentTaskId,
+            value,
+          };
+          subject.context.taskMaster.dispatch(CommandType.Confirm, command);
+        },
+        (parentTaskId, rejectionReason: string | Error) => {
+          const command: RejectCommand = {
+            taskId: parentTaskId,
+            rejectionReason,
+          };
+          subject.context.taskMaster.dispatch(CommandType.Reject, command);
+        }
+      );
+
+      // Override the default confirm event to provide an input value
+      subject.context.taskMaster.registerCommandHandler(
+        CommandType.Confirm,
+        async (command: ConfirmCommand & { value: string }, task, emitter) => {
+          emitter.emit(EventType.Confirmed, { value: command.value }, task);
+        },
+        true
+      );
+
+      // Register an event that generates the callback when the presentation is resolved
+      subject.context.taskMaster.registerEventHandler(
+        EventType.Resolved,
+        (_event, task) => {
+          callback[task.id] = requestInputTaskGenerator(task.id);
+        },
+        true
+      );
     });
 
     it('can resolve a presentation request with a confirmation handler that requests input', async () => {
-      let userClicksOK = () => {}; // dummy initial value
-      const waitForOKHandler: ConfirmPresentationEventHandler = {
-        handle: () =>
-          new Promise((resolve) => {
-            userClicksOK = () => resolve();
-          }),
-      };
+      const presentationTask: TaskContext<AugmentedPesentationState> = subject.resolvePresentationRequest(
+        presentationRequest,
+        verifierDID
+      );
 
-      const resolveTask = subject
-        .resolvePresentationRequest(request)
-        .on(PresentationEventType.ConfirmPresentation, waitForOKHandler);
+      await presentationTask.waitForEvent(EventType.Resolved);
 
-      resolveTask.resolveWithPresentation(presentation);
+      const value = 'my value';
+      expect(callback[presentationTask.id]).toBeDefined();
+      await callback[presentationTask.id](undefined, value);
 
-      // execute the wait for ok handler (simulate showing an OK? message on the screen)
-      await new Promise((resolve) => setImmediate(resolve));
+      await presentationTask.waitForDone();
 
-      userClicksOK();
-
-      return expect(resolveTask.result()).resolves.toBeUndefined();
+      expect(presentationTask.state.value).toEqual(value);
     });
 
-    // TODO fix handler chaining
-    it.skip('can reject a presentation request with a confirmation handler that requests input', async () => {
-      const reason = new Error('User rejected the presentation');
+    it('can resolve or reject multiple presentation request with different requestInput subtasks', async () => {
+      const firstTask: TaskContext<AugmentedPesentationState> = subject.resolvePresentationRequest(
+        presentationRequest,
+        verifierDID
+      );
+      const secondTask: TaskContext<AugmentedPesentationState> = subject.resolvePresentationRequest(
+        presentationRequest,
+        verifierDID
+      );
 
-      let userClicksCancel = () => {}; // dummy initial value
-      const waitForCancelHandler: ConfirmPresentationEventHandler = {
-        handle: () =>
-          new Promise((_resolve, reject) => {
-            userClicksCancel = () => reject(reason);
-          }),
-      };
+      await firstTask.waitForEvent(EventType.Resolved);
+      await secondTask.waitForEvent(EventType.Resolved);
 
-      const resolveTask = subject
-        .resolvePresentationRequest(request)
-        .on(PresentationEventType.ConfirmPresentation, waitForCancelHandler);
+      const rejectionReason = 'user rejected';
+      const value = 'my value';
+      await callback[firstTask.id](rejectionReason);
+      await callback[secondTask.id](undefined, value);
 
-      resolveTask.emit(new ConfirmPresentationEvent(request, presentation));
+      await firstTask.waitForDone();
+      await secondTask.waitForDone();
 
-      userClicksCancel();
-
-      return expect(resolveTask.result()).rejects.toThrow(reason);
+      expect(firstTask.state.rejectionReason).toEqual(rejectionReason);
+      expect(secondTask.state.value).toEqual(value);
     });
   });
 });

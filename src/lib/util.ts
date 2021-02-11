@@ -1,5 +1,9 @@
 import { complement, isNil, pickBy } from 'ramda';
 
+export type DeepPartial<T> = {
+  [P in keyof T]?: DeepPartial<T[P]>;
+};
+
 export const filterOutMissingProps = pickBy(complement(isNil));
 
 export const safeParseJSON = (

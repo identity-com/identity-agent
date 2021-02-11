@@ -11,15 +11,15 @@ export class TaskRepository {
     this.tasks = [];
   }
 
-  async hydrate(task: Task<any>) {
+  async store(task: Task<any>) {
     await this.storage.put([STORAGE_FOLDER, task.id], task);
   }
 
   private async loadTaskFromStorage(
     storageKey: StorageKey
   ): Promise<Task<any>> {
-    const task = await this.storage.get(storageKey);
-    return task as Task<any>;
+    const taskContents = (await this.storage.get(storageKey)) as Task<any>;
+    return new Task(taskContents.id, taskContents.events);
   }
 
   async rehydrate() {
@@ -31,7 +31,8 @@ export class TaskRepository {
     );
 
     const rehydratedTasks = await Promise.all(taskPromises);
-    this.tasks.push(...rehydratedTasks);
+    const unfinishedTasks = rehydratedTasks.filter((task) => !task.isDone());
+    this.tasks.push(...unfinishedTasks);
   }
 
   add(task: Task<any>) {
@@ -42,11 +43,13 @@ export class TaskRepository {
     return this.tasks.find(propEq('id', id));
   }
 
-  update<ET extends string, S>(id: string, event: TaskEvent<ET, S>) {
+  async update<ET extends string, S>(id: string, event: TaskEvent<ET, S>) {
     const task: Task<S> | undefined = this.get(id);
 
     if (!task) throw Error('Unknown task ' + id);
 
     task.events.push(event);
+
+    await this.store(task);
   }
 }

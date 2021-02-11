@@ -1,4 +1,8 @@
 export type EventPayload = { [k: string]: any };
 
-// @ts-ignore
-export type TaskEvent<ET extends string, S> = Partial<S>;
+export enum EventType {
+  Started = 'Started',
+  Done = 'Done',
+}
+
+export type TaskEvent<ET extends string, S> = { type: ET; payload: Partial<S> };

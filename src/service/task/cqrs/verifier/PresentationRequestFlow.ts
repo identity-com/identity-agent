@@ -1,10 +1,12 @@
 import { DID } from '@/api/DID';
-import { Transport } from '@/service/transport/Transport';
+import { Transport, Response } from '@/service/transport/Transport';
 import { Task } from '@/service/task/cqrs/Task';
 import { Command } from '@/service/task/cqrs/Command';
 import { CommandHandler } from '@/service/task/cqrs/CommandHandler';
 import { PresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
 import { PresentationVerification } from '@/service/credential/PresentationVerification';
+import { Context } from '@/api/Agent';
+import { EventType as CommonEventType } from '@/service/task/cqrs/TaskEvent';
 
 export namespace PresentationRequestFlow {
   import Presentation = PresentationFlow.Presentation;
@@ -13,20 +15,22 @@ export namespace PresentationRequestFlow {
   export type PresentationRequestState = {
     subject: DID;
     request: PresentationRequest;
-    requestResponse: Presentation;
+    requestResponse: Response;
+    response: Presentation;
     requestedAt: Date;
     respondedAt: Date;
     valid: boolean;
   };
 
+  // TODO replace with Symbols?
   export enum EventType {
-    Requested = 'Request',
-    Responded = 'Responded',
+    Requested = 'PresentationRequestFlow.Request',
+    PresentationReceived = 'PresentationRequestFlow.PresentationReceived',
   }
 
   export enum CommandType {
-    Request = 'Request',
-    ProcessResponse = 'ProcessResponse',
+    Request = 'PresentationRequestFlow.Request',
+    ProcessResponse = 'PresentationRequestFlow.ProcessResponse',
   }
 
   export interface RequestPresentationCommand
@@ -87,7 +91,7 @@ export namespace PresentationRequestFlow {
       const valid = await this.verification.verify(command.response);
 
       this.emit(
-        EventType.Responded,
+        EventType.PresentationReceived,
         {
           respondedAt: new Date(),
           ...command,
@@ -95,6 +99,22 @@ export namespace PresentationRequestFlow {
         },
         task
       );
+
+      this.emit(CommonEventType.Done, {}, task);
     }
   }
+
+  export const register = (context: Context) => {
+    context.taskMaster.registerCommandHandler(
+      CommandType.Request,
+      new RequestPresentationCommandHandler(context.transport)
+    );
+
+    context.taskMaster.registerCommandHandler(
+      CommandType.ProcessResponse,
+      new ProcessPresentationResponseCommandHandler(
+        context.credential.presentationVerification
+      )
+    );
+  };
 }

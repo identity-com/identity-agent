@@ -13,9 +13,6 @@ import {
 import { Resolver } from 'did-resolver';
 import nacl from 'tweetnacl';
 
-// if (!global.TextEncoder) global.TextEncoder = util.TextEncoder;
-// if (!global.TextDecoder) global.TextDecoder = util.TextDecoder;
-
 /**
  * Test this via the command line using
  *

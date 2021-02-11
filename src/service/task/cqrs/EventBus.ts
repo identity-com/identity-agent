@@ -3,10 +3,11 @@ import EventEmitter from 'events';
 import { TaskEvent } from '@/service/task/cqrs/TaskEvent';
 import { TaskRepository } from '@/service/task/cqrs/TaskRepository';
 import { Task } from '@/service/task/cqrs/Task';
+import { propEq } from 'ramda';
 
 export type Handler<T extends string, S> =
   | EventHandler<T, S>
-  | ((event: TaskEvent<T, S>) => any);
+  | ((event: TaskEvent<T, S>, task: Task<S>) => any);
 
 const isEventHandler = <T extends string, S>(
   h: Handler<T, S>
@@ -17,25 +18,51 @@ export class EventBus extends EventEmitter {
     super();
   }
 
-  emit<T extends string, S>(type: T, event: TaskEvent<T, S>, task: Task<S>) {
-    console.log(type + ' emitted. Listeners: ' + this.listeners(type));
+  emit<ET extends string, S>(
+    type: ET,
+    eventPayload: Partial<S>,
+    task: Task<S>
+  ) {
+    console.log(`Event emitted: ${type}`);
+    const event = { type, payload: eventPayload };
     this.taskRepository.update(task.id, event);
-    return super.emit(type, event, task.id);
+    return super.emit(type, event, task);
   }
 
-  registerHandler<T extends string, S>(type: T, handler: Handler<T, S>) {
+  registerHandler<T extends string, S>(
+    type: T,
+    handler: Handler<T, S>,
+    overwrite: boolean
+  ) {
     console.log('Registering listener for type ' + type);
 
     const eventHandler = isEventHandler(handler)
       ? handler
       : ({ handle: handler } as EventHandler<T, S>);
 
-    this.on(type, (event) => eventHandler.handle(event));
+    if (overwrite) this.removeAllListeners(type);
+
+    this.on(type, (event, task) => eventHandler.handle(event, task));
   }
 
-  waitForEvent<T extends string, S>(type: T): Promise<TaskEvent<T, S>> {
+  waitForEvent<ET extends string, S>(
+    type: ET,
+    taskId?: string
+  ): Promise<TaskEvent<ET, S>> {
+    if (taskId) {
+      const task = this.taskRepository.get(taskId);
+      const existingEvent = task?.events.find(propEq('type', type));
+      if (existingEvent) {
+        return Promise.resolve(existingEvent);
+      }
+    }
+
     return new Promise((resolve) => {
-      this.on(type, resolve);
+      this.on(
+        type,
+        (event: TaskEvent<ET, S>, task: Task<S>) =>
+          (!taskId || task.id === taskId) && resolve(event)
+      );
     });
   }
 }

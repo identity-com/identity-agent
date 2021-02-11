@@ -8,11 +8,14 @@ import {
 } from '@/service/crypto/CryptoModule';
 import { JWE, JWTVerified } from 'did-jwt';
 import { AgentStorage } from '@/service/storage/AgentStorage';
-import { TaskMaster } from '@/service/task/TaskMaster';
+import { TaskContext, TaskMaster } from '@/service/task/TaskMaster';
 import { Transport, Response } from '@/service/transport/Transport';
 import nacl from 'tweetnacl';
-import { Task } from '@/service/task/cqrs/Task';
 import { MicrowaveFlow } from '@/service/task/cqrs/microwave/MicrowaveFlow';
+import { Presenter } from '@/service/credential/Presenter';
+import { PresentationVerification } from '@/service/credential/PresentationVerification';
+import { IssuerProxy } from '@/service/credential/IssuerProxy';
+import { DeepPartial } from '@/lib/util';
 
 export type Config = {
   // include this only while we keep an S3Cache DID resolver
@@ -30,6 +33,11 @@ export type Context = {
   taskMaster: TaskMaster;
   config: Config;
   transport: Transport;
+  credential: {
+    presenter: Presenter;
+    presentationVerification: PresentationVerification;
+    issuerProxy: IssuerProxy;
+  };
 };
 
 export type Identity = {
@@ -59,15 +67,17 @@ export abstract class Agent {
     recipient: DID
   ): Promise<Response>;
 
-  abstract startSlowTask(delay?: number): Task<MicrowaveFlow.MicrowaveState>;
+  abstract startSlowTask(
+    delay?: number
+  ): TaskContext<MicrowaveFlow.MicrowaveState>;
 
-  abstract allResults(): Promise<any[]>;
+  abstract get tasks(): TaskContext<any>[];
 
-  static for(did: DID, context?: Partial<Context>) {
+  static for(did: DID, context?: DeepPartial<Context>) {
     return DefaultAgent.for(did, context);
   }
 
-  static register(context?: Partial<Context>) {
+  static register(context?: DeepPartial<Context>) {
     return DefaultAgent.register(context);
   }
 }

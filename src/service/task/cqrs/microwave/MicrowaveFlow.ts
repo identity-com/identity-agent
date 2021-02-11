@@ -1,4 +1,4 @@
-import { TaskEvent } from '@/service/task/cqrs/TaskEvent';
+import { EventType } from '@/service/task/cqrs/TaskEvent';
 import {
   Command,
   RehydrateCommand,
@@ -7,6 +7,7 @@ import {
 import { CommandHandler } from '@/service/task/cqrs/CommandHandler';
 import { Task } from '@/service/task/cqrs/Task';
 import { EventHandler } from '@/service/task/cqrs/EventHandler';
+import { Context } from '@/api/Agent';
 
 export namespace MicrowaveFlow {
   const whirr = (durationMS: number) =>
@@ -17,13 +18,8 @@ export namespace MicrowaveFlow {
     durationMS: number;
   };
 
-  export enum EventType {
-    Started = 'Started',
-    Done = 'Done',
-  }
-
   export enum CommandType {
-    StartCooking = 'StartCooking',
+    StartCooking = 'MicrowaveFlow.StartCooking',
   }
 
   export interface StartCookingCommand
@@ -38,7 +34,7 @@ export namespace MicrowaveFlow {
   > {
     async execute(command: StartCookingCommand, task: Task<MicrowaveState>) {
       const now = Date.now();
-      const event: TaskEvent<EventType.Started, MicrowaveState> = {
+      const event: Partial<MicrowaveState> = {
         startTime: now,
         durationMS: command.durationMS,
       };
@@ -70,4 +66,22 @@ export namespace MicrowaveFlow {
       console.log('Ping!');
     }
   }
+
+  export const register = (context: Context) => {
+    context.taskMaster.registerCommandHandler(
+      MicrowaveFlow.CommandType.StartCooking,
+      new MicrowaveFlow.StartCookingCommandHandler()
+    );
+
+    context.taskMaster.registerCommandHandler(
+      CommonCommandType.Rehydrate,
+      new MicrowaveFlow.RehydrateCommandHandler()
+    );
+
+    // TODO add only to Microwave tasks
+    context.taskMaster.registerEventHandler(
+      EventType.Done,
+      new MicrowaveFlow.DoneEventHandler()
+    );
+  };
 }

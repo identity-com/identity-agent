@@ -19,12 +19,16 @@ export class CommandDispatcher {
     S, // Task state
     C extends Command<CT>, // command type
     CT extends string // command name string
-  >(commandType: CT, handler: CommandHandler<CT, C, S>) {
+  >(commandType: CT, handler: CommandHandler<CT, C, S>, overwrite: boolean) {
     let handlers = this.handlers[commandType];
 
     if (!handlers) {
       handlers = [];
       this.handlers[commandType] = handlers;
+    }
+
+    if (overwrite) {
+      handlers.length = 0;
     }
 
     handlers.push(handler);
@@ -41,6 +45,8 @@ export class CommandDispatcher {
     const task = this.taskRepository.get(command.taskId);
 
     if (!task) throw new Error(`No task found with ID ${command.taskId}`);
+
+    console.log(`Dispatching command: ${type}`, command);
 
     return handlers.reduce(async (previousPromise, handler) => {
       await previousPromise;

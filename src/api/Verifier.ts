@@ -1,7 +1,8 @@
 import { Agent, DefaultAgent } from './internal';
 import { DID } from '@/api/DID';
-import { Task } from '@/service/task/cqrs/Task';
 import { PresentationRequestFlow } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
+import { TaskContext } from '@/service/task/TaskMaster';
+import { Sparse } from '@/service/task/cqrs/Command';
 import PresentationRequest = PresentationRequestFlow.PresentationRequest;
 
 export class Verifier extends DefaultAgent {
@@ -9,24 +10,18 @@ export class Verifier extends DefaultAgent {
     super(me.document, me.context);
   }
 
-  async requestPresentation(
-    subject: DID,
-    request: PresentationRequest
-  ): Promise<Task<PresentationRequestFlow.PresentationRequestState>> {
-    const task = new Task<PresentationRequestFlow.PresentationRequestState>();
-    this.me.context.taskMaster.registerTask(task);
+  requestPresentation<
+    S extends PresentationRequestFlow.PresentationRequestState
+  >(subject: DID, request: PresentationRequest): TaskContext<S> {
+    const taskContext: TaskContext<S> = this.me.context.taskMaster.registerTask();
 
-    const command: PresentationRequestFlow.RequestPresentationCommand = {
-      taskId: task.id,
+    const command: Sparse<PresentationRequestFlow.RequestPresentationCommand> = {
       subject,
       request,
     };
 
-    await this.me.context.taskMaster.dispatch(
-      PresentationRequestFlow.CommandType.Request,
-      command
-    );
+    taskContext.dispatch(PresentationRequestFlow.CommandType.Request, command);
 
-    return task;
+    return taskContext;
   }
 }

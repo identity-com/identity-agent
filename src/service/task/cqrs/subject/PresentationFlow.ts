@@ -1,14 +1,9 @@
 import { DID } from '@/api/DID';
 import { Task } from '@/service/task/cqrs/Task';
 import { Command } from '@/service/task/cqrs/Command';
-import {
-  CredentialRequest,
-  CredentialRequestState,
-} from '@/service/task/cqrs/subject/CredentialRequestFlow';
+import { CredentialRequest } from '@/service/task/cqrs/subject/CredentialRequestFlow';
 import { CommandHandler } from '@/service/task/cqrs/CommandHandler';
-import { Transport } from '@/service/transport/Transport';
-import { Response } from '@/service/transport/Transport';
-import { IssuerProxy } from '@/service/credential/IssuerProxy';
+import { Transport, Response } from '@/service/transport/Transport';
 import { Context } from '@/api/Agent';
 import { Presenter } from '@/service/credential/Presenter';
 import { EventHandler } from '@/service/task/cqrs/EventHandler';
@@ -16,8 +11,9 @@ import {
   EventType as CommonEventType,
   TaskEvent,
 } from '@/service/task/cqrs/TaskEvent';
-import { TaskMaster } from '@/service/task/TaskMaster';
+import { TaskContext, TaskMaster } from '@/service/task/TaskMaster';
 import { PresentationRequest } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
+import * as CredentialRequestFlow from '@/service/task/cqrs/subject/CredentialRequestFlow';
 
 export type Presentation = {};
 
@@ -28,18 +24,18 @@ export type PresentationState = {
   respondedAt: Date;
   rejectedAt: Date;
   rejectionReason: string | Error;
-  credentialRequests: Task<CredentialRequestState>[];
+  credentialRequests: CredentialRequest[];
   presentation: Presentation;
   verifierResponse: Response;
 };
 
 export enum EventType {
   Requested = 'PresentationFlow.Requested',
+  MissingCredentials = 'PresentationFlow.MissingCredential',
   Resolved = 'PresentationFlow.Resolved',
   Confirmed = 'PresentationFlow.Confirmed',
   Responded = 'PresentationFlow.Responded',
   Rejected = 'PresentationFlow.Rejected',
-  CredentialRequested = 'PresentationFlow.CredentialRequested',
 }
 
 export enum CommandType {
@@ -57,7 +53,7 @@ export interface RequestPresentationCommand
 }
 export class RequestPresentationCommandHandler extends CommandHandler<
   CommandType.Request,
-  RequestCredentialCommand,
+  RequestPresentationCommand,
   PresentationState
 > {
   constructor(private presenter: Presenter) {
@@ -72,47 +68,25 @@ export class RequestPresentationCommandHandler extends CommandHandler<
 
     const presentation = await this.presenter.present(command.request);
 
-    this.emit(
-      EventType.Resolved,
-      {
-        presentation,
-      },
-      task
-    );
-  }
-}
-
-export interface RequestCredentialCommand
-  extends Command<CommandType.RequestCredential> {
-  readonly request: CredentialRequest;
-}
-export class RequestCredentialCommandHandler extends CommandHandler<
-  CommandType.Respond,
-  RequestCredentialCommand,
-  PresentationState
-> {
-  constructor(private issuer: IssuerProxy) {
-    super();
-  }
-
-  async execute(
-    command: RequestCredentialCommand,
-    task: Task<PresentationState>
-  ) {
-    const credentialRequestTask = this.issuer.requestCredential(
-      command.request
-    );
-
-    this.emit(
-      EventType.CredentialRequested,
-      {
-        credentialRequests: [
-          ...(task.state.credentialRequests || []),
-          credentialRequestTask,
-        ],
-      },
-      task
-    );
+    // TODO replace with some Missing array for multiple missing credentials
+    if (!presentation) {
+      const newCredentialRequest = { type: 'TODO' };
+      this.emit(
+        EventType.MissingCredentials,
+        {
+          credentialRequests: [newCredentialRequest],
+        },
+        task
+      );
+    } else {
+      this.emit(
+        EventType.Resolved,
+        {
+          presentation,
+        },
+        task
+      );
+    }
   }
 }
 
@@ -180,8 +154,26 @@ export class RespondCommandHandler extends CommandHandler<
 
 type Handler<ET extends string> = EventHandler<ET, PresentationState>;
 
-export class ResolvedEventHandler
-  implements EventHandler<EventType.Resolved, PresentationState> {
+// TODO this would be injected
+export class MissingCredentialsEventHandler
+  implements Handler<EventType.MissingCredentials> {
+  constructor(private taskMaster: TaskMaster) {}
+  handle(
+    event: TaskEvent<EventType.MissingCredentials, PresentationState>,
+    task: Task<PresentationState>
+  ) {
+    event.payload.credentialRequests?.map((request) => {
+      const taskContext: TaskContext<CredentialRequestFlow.CredentialRequestState> = this.taskMaster.registerTask();
+      taskContext.dispatch(CredentialRequestFlow.CommandType.Request, {
+        request,
+        requestedAt: new Date(),
+        forPresentationRequestTaskId: task.id,
+      });
+    });
+  }
+}
+
+export class ResolvedEventHandler implements Handler<EventType.Resolved> {
   constructor(private taskMaster: TaskMaster) {}
   handle(
     event: TaskEvent<EventType.Resolved, PresentationState>,
@@ -214,11 +206,6 @@ export const register = (context: Context) => {
   );
 
   context.taskMaster.registerCommandHandler(
-    CommandType.RequestCredential,
-    new RequestCredentialCommandHandler(context.credential.issuerProxy)
-  );
-
-  context.taskMaster.registerCommandHandler(
     CommandType.Confirm,
     new ConfirmCommandHandler()
   );
@@ -231,6 +218,11 @@ export const register = (context: Context) => {
   context.taskMaster.registerCommandHandler(
     CommandType.Respond,
     new RespondCommandHandler(context.transport)
+  );
+
+  context.taskMaster.registerEventHandler(
+    EventType.MissingCredentials,
+    new MissingCredentialsEventHandler(context.taskMaster)
   );
 
   context.taskMaster.registerEventHandler(

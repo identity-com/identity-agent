@@ -1,5 +1,4 @@
-import { PresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
-import Presentation = PresentationFlow.Presentation;
+import { Presentation } from '@/service/task/cqrs/subject/PresentationFlow';
 
 export interface PresentationVerification {
   verify(presentation: Presentation): Promise<boolean>; // TODO boolean is temporary

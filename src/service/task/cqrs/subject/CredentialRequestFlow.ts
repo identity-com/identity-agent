@@ -1,15 +1,23 @@
 import { DID } from '@/api/DID';
-import { PresentationRequest } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
+import { CommandHandler } from '@/service/task/cqrs/CommandHandler';
+import { IssuerProxy } from '@/service/credential/IssuerProxy';
+import { Task } from '../Task';
+import { Command } from '@/service/task/cqrs/Command';
+import { Context } from '@/api/Agent';
 
+export type CredentialType = string;
 export type Credential = {};
-export type CredentialRequest = {};
+export type CredentialRequest = {
+  issuer?: DID;
+  type: CredentialType;
+};
 
 export type CredentialRequestState = {
   issuer: DID;
   request: CredentialRequest;
   credential: Credential;
   requestedAt: Date;
-  forPresentationRequest: PresentationRequest;
+  forPresentationRequestTaskId: string;
 };
 
 export enum EventType {
@@ -21,9 +29,33 @@ export enum CommandType {
   Request = 'CredentialRequestFlow.Request',
 }
 
-export interface RequestCredentialCommand {
-  issuer: DID;
+export interface RequestCredentialCommand extends Command<CommandType.Request> {
   request: CredentialRequest;
   requestedAt: Date;
-  forPresentationRequest: PresentationRequest;
+  forPresentationRequestTaskId: string;
 }
+
+export class RequestCredentialCommandHandler extends CommandHandler<
+  CommandType.Request,
+  RequestCredentialCommand,
+  CredentialRequestState
+> {
+  constructor(private readonly issuer: IssuerProxy<any>) {
+    super();
+  }
+
+  async execute(
+    command: RequestCredentialCommand,
+    task: Task<CredentialRequestState>
+  ): Promise<void> {
+    const credential = await this.issuer.requestCredential(command.request);
+    this.emit(EventType.Responded, { credential }, task);
+  }
+}
+
+export const register = (context: Context) => {
+  context.taskMaster.registerCommandHandler(
+    CommandType.Request,
+    new RequestCredentialCommandHandler(context.credential.issuerProxy)
+  );
+};

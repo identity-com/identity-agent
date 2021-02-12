@@ -27,10 +27,10 @@ export abstract class CommandHandler<
   }
 
   abstract execute(command: C, task: Task<S>): Promise<void>;
-  emit<ET extends string>(
+  emit<ET extends string, TS>(
     type: ET,
-    eventPayload: Partial<S>,
-    task: Task<S>
+    eventPayload: Partial<TS>,
+    task: Task<TS>
   ): boolean {
     if (!this._eventBus)
       throw new Error('Unable to emit from this handler - missing event bus');

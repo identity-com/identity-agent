@@ -37,7 +37,7 @@
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
-    "deploy": "scripts/deploy-site.sh"
+    "deploy": "yarn build && scripts/deploy-site.sh"
   },
   "eslintConfig": {
     "extends": [

@@ -1,5 +1,5 @@
 import { DIDDocument } from 'did-resolver';
-import { DID, DIDResolver } from '@/api/DID';
+import { DID, DIDResolver } from './DID';
 import { Subject, DefaultAgent, Verifier } from '@/api/internal';
 import {
   AsymmetricKey,
@@ -36,7 +36,7 @@ export type Context = {
   credential: {
     presenter: Presenter;
     presentationVerification: PresentationVerification;
-    issuerProxy: IssuerProxy;
+    issuerProxy: IssuerProxy<any>;
   };
 };
 

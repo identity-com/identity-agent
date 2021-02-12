@@ -17,6 +17,7 @@ import {
 import { register as registerMicrowaveFlow } from '@/service/task/cqrs/microwave/MicrowaveFlow';
 import { register as registerPresentationRequestFlow } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
 import { register as registerPresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
+import { register as registerCredentialRequestFlow } from '@/service/task/cqrs/subject/CredentialRequestFlow';
 import { register as registerRequestInputFlow } from '@/service/task/cqrs/requestInput/RequestInput';
 
 export interface TaskMaster {
@@ -78,6 +79,7 @@ export class DefaultTaskMaster implements TaskMaster {
     registerMicrowaveFlow(populatedContext);
     registerPresentationRequestFlow(populatedContext);
     registerPresentationFlow(populatedContext);
+    registerCredentialRequestFlow(populatedContext);
     registerRequestInputFlow(populatedContext);
   }
 

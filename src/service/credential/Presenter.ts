@@ -1,10 +1,8 @@
-import { PresentationRequestFlow } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
-import { PresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
-import PresentationRequest = PresentationRequestFlow.PresentationRequest;
-import Presentation = PresentationFlow.Presentation;
+import { PresentationRequest } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
+import { Presentation } from '@/service/task/cqrs/subject/PresentationFlow';
 
 export interface Presenter {
-  present(request: PresentationRequest): Promise<Presentation>;
+  present(request: PresentationRequest): Promise<Presentation | null>;
 }
 
 // The stub implementation just returns the same presentation

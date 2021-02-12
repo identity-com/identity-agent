@@ -2,16 +2,17 @@ import { example as did } from '../fixtures/did';
 import { xprv as dummyXprv } from '../fixtures/keys';
 import { Agent } from '@/api/Agent';
 import { Verifier } from '@//api/Verifier';
-import { PresentationRequestFlow } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
-import { Sparse } from '@/service/task/cqrs/Command';
 import * as nacl from 'tweetnacl';
 import { TaskEvent } from '@/service/task/cqrs/TaskEvent';
-import { PresentationFlow } from '../../src/service/task/cqrs/subject/PresentationFlow';
 import { repeat, times } from 'ramda';
-import EventType = PresentationRequestFlow.EventType;
-import Presentation = PresentationFlow.Presentation;
-import CommandType = PresentationRequestFlow.CommandType;
-import PresentationRequestState = PresentationRequestFlow.PresentationRequestState;
+import {
+  ProcessPresentationResponseCommand,
+  EventType,
+  CommandType,
+  PresentationRequestState,
+} from '../../src/service/task/cqrs/verifier/PresentationRequestFlow';
+import { Sparse } from '../../src/service/task/cqrs/Command';
+import { Presentation } from '../../src';
 
 const subjectDID = 'did:dummy:receiver';
 
@@ -39,14 +40,11 @@ describe('PresentationRequestFlow flows', () => {
 
       // resolves the task. No need to await the result,
       // that will happen in the next step
-      const command: Sparse<PresentationRequestFlow.ProcessPresentationResponseCommand> = {
+      const command: Sparse<ProcessPresentationResponseCommand> = {
         response: presentation,
       };
 
-      presentationTask.dispatch(
-        PresentationRequestFlow.CommandType.ProcessResponse,
-        command
-      );
+      presentationTask.dispatch(CommandType.ProcessResponse, command);
 
       await presentationTask.waitForDone();
 

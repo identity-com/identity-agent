@@ -12,10 +12,14 @@ import {
   Builder,
 } from './internal';
 import { Registrar } from '@/service/agent/builder/Registrar';
-import { MicrowaveFlow } from '@/service/task/cqrs/microwave/MicrowaveFlow';
 import { TaskContext } from '@/service/task/TaskMaster';
 import { Sparse } from '@/service/task/cqrs/Command';
 import { DeepPartial } from '@/lib/util';
+import {
+  CommandType,
+  MicrowaveState,
+  StartCookingCommand,
+} from '@/service/task/cqrs/microwave/MicrowaveFlow';
 
 const isIdentity = (identity: DID | Identity): identity is Identity =>
   Object.prototype.hasOwnProperty.call(identity, 'did');
@@ -64,14 +68,14 @@ export class DefaultAgent implements Agent {
   }
 
   // temp
-  startSlowTask(delay?: number): TaskContext<MicrowaveFlow.MicrowaveState> {
-    const taskContext: TaskContext<MicrowaveFlow.MicrowaveState> = this.context.taskMaster.registerTask();
+  startSlowTask(delay?: number): TaskContext<MicrowaveState> {
+    const taskContext: TaskContext<MicrowaveState> = this.context.taskMaster.registerTask();
 
-    const command: Sparse<MicrowaveFlow.StartCookingCommand> = {
+    const command: Sparse<StartCookingCommand> = {
       durationMS: delay || 2000,
     };
 
-    taskContext.dispatch(MicrowaveFlow.CommandType.StartCooking, command);
+    taskContext.dispatch(CommandType.StartCooking, command);
 
     return taskContext;
   }

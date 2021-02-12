@@ -11,11 +11,11 @@ import { AgentStorage } from '@/service/storage/AgentStorage';
 import { TaskContext, TaskMaster } from '@/service/task/TaskMaster';
 import { Transport, Response } from '@/service/transport/Transport';
 import nacl from 'tweetnacl';
-import { MicrowaveFlow } from '@/service/task/cqrs/microwave/MicrowaveFlow';
 import { Presenter } from '@/service/credential/Presenter';
 import { PresentationVerification } from '@/service/credential/PresentationVerification';
 import { IssuerProxy } from '@/service/credential/IssuerProxy';
 import { DeepPartial } from '@/lib/util';
+import { MicrowaveState } from '@/service/task/cqrs/microwave/MicrowaveFlow';
 
 export type Config = {
   // include this only while we keep an S3Cache DID resolver
@@ -67,9 +67,7 @@ export abstract class Agent {
     recipient: DID
   ): Promise<Response>;
 
-  abstract startSlowTask(
-    delay?: number
-  ): TaskContext<MicrowaveFlow.MicrowaveState>;
+  abstract startSlowTask(delay?: number): TaskContext<MicrowaveState>;
 
   abstract get tasks(): TaskContext<any>[];
 

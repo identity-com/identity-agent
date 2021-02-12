@@ -6,16 +6,19 @@ import * as nacl from 'tweetnacl';
 import { Task } from '@/service/task/cqrs/Task';
 import { EventType as CommonEventType } from '@/service/task/cqrs/TaskEvent';
 import { StubPresenter } from '@/service/credential/Presenter';
-import { PresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
-import { RequestInputFlow } from '../../src/service/task/cqrs/requestInput/RequestInput';
 import { TaskContext } from '../../src/service/task/TaskMaster';
-import CommandType = PresentationFlow.CommandType;
-import ConfirmCommand = PresentationFlow.ConfirmCommand;
-import EventType = PresentationFlow.EventType;
-import PresentationState = PresentationFlow.PresentationState;
-import ConfirmCommandHandler = PresentationFlow.ConfirmCommandHandler;
-import Callback = RequestInputFlow.Callback;
-import RejectCommand = PresentationFlow.RejectCommand;
+import {
+  ConfirmCommand,
+  ConfirmCommandHandler,
+  PresentationState,
+  RejectCommand,
+  EventType,
+  CommandType,
+} from '../../src/service/task/cqrs/subject/PresentationFlow';
+import {
+  Callback,
+  create,
+} from '../../src/service/task/cqrs/requestInput/RequestInput';
 
 const verifierDID = 'did:dummy:receiver';
 
@@ -95,7 +98,7 @@ describe('PresentationFlow flows', () => {
     type AugmentedPesentationState = PresentationState & { value: string };
 
     beforeEach(() => {
-      const requestInputTaskGenerator = RequestInputFlow.create(
+      const requestInputTaskGenerator = create(
         subject.context.taskMaster,
         (parentTaskId, value: string) => {
           const command: ConfirmCommand & { value: string } = {

@@ -9,15 +9,15 @@ import {
 import { Task } from '@/service/task/cqrs/Task';
 import { EventBus, Handler } from '@/service/task/cqrs/EventBus';
 import { EventType, TaskEvent } from '@/service/task/cqrs/TaskEvent';
-import { MicrowaveFlow } from '@/service/task/cqrs/microwave/MicrowaveFlow';
-import { PresentationRequestFlow } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
-import { PresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
 import {
   Handler as CommandHandler,
   isCommandHandler,
   wrap,
 } from '@/service/task/cqrs/CommandHandler';
-import { RequestInputFlow } from '@/service/task/cqrs/requestInput/RequestInput';
+import { register as registerMicrowaveFlow } from '@/service/task/cqrs/microwave/MicrowaveFlow';
+import { register as registerPresentationRequestFlow } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
+import { register as registerPresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
+import { register as registerRequestInputFlow } from '@/service/task/cqrs/requestInput/RequestInput';
 
 export interface TaskMaster {
   dispatch<CT extends string, C extends Command<CT>>(
@@ -75,10 +75,10 @@ export class DefaultTaskMaster implements TaskMaster {
 
     // TODO Temp - DI library needed
     const populatedContext = { ...context, taskMaster: this };
-    MicrowaveFlow.register(populatedContext);
-    PresentationRequestFlow.register(populatedContext);
-    PresentationFlow.register(populatedContext);
-    RequestInputFlow.register(populatedContext);
+    registerMicrowaveFlow(populatedContext);
+    registerPresentationRequestFlow(populatedContext);
+    registerPresentationFlow(populatedContext);
+    registerRequestInputFlow(populatedContext);
   }
 
   registerFlows(flowRegister: (context: Context) => void) {

@@ -16,9 +16,6 @@
     "test": "tsdx test --runInBand",
     "lint": "tsdx lint --maxWarnings 0",
     "prepare": "tsdx build",
-    "size": "size-limit",
-    "analyze": "size-limit --why",
-    "cli": "ts-node src/cli",
     "repl": "yarn build && local-repl"
   },
   "husky": {

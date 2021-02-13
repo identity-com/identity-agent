@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Agent } from "identity-agent";
+import { Agent, DID, PayloadType } from "identity-agent";
 
-import { createAgent } from './utils/agent';
+import { createAgent, handlePresentationRequest } from './utils/agent';
 
 import { Header } from "./components/Header";
 import { DIDDisplay } from "./components/DIDDisplay";
 import { EncryptMessage } from "./components/EncryptMessage";
 import {connect} from "./utils/hub";
 import { IncomingMessages } from './components/IncomingMessages';
-import { DID } from '../../../src';
 
 export type Message = {
   content: string,
   sender: DID,
   receivedAt: Date,
   id: string
+  type: PayloadType
 }
 
 const App = () => {
@@ -23,17 +23,26 @@ const App = () => {
   const [incomingMessages, setIncomingMessages] = useState<Message[]>([]);
   const [agent, setAgent] = useState<Agent>();
 
+
   useEffect(() => {
-    const listener = (error: any, message:any) => {
+    const listener = (error: any, message:Message | undefined) => {
       if (error) console.error(error);
+      if (!agent) return;
       if (message) {
-        setIncomingMessages(incomingMessages => [message, ...incomingMessages])
+        switch (message.type) {
+          case 'Message':
+            setIncomingMessages(incomingMessages => [message, ...incomingMessages])
+            break;
+          case 'PresentationRequest':
+            handlePresentationRequest(agent, message.content, message.sender);
+            break;
+        }
       }
     }
 
     if (!agent) return;
 
-    connect(agent, listener );
+    connect(agent, listener);
   }, [agent]);
 
   useEffect(() => {
@@ -63,8 +72,6 @@ const App = () => {
               agent={agent}
               message={message}
               setMessage={setMessage}
-              onCopy={() => setCopied("message")}
-              showIcon={copied === "message"}
             />
           </>
         )}

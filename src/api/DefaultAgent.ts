@@ -2,8 +2,6 @@ import { DIDDocument } from 'did-resolver';
 import { DID } from '@/api/DID';
 import { JWT } from '@/service/crypto/CryptoModule';
 import { JWE, JWTVerified } from 'did-jwt';
-import { Task } from '@/service/task/Task';
-import { DummyTask } from '@/service/task/DummyTask';
 import { Response } from '@/service/transport/Transport';
 import {
   Subject,
@@ -14,6 +12,14 @@ import {
   Builder,
 } from './internal';
 import { Registrar } from '@/service/agent/builder/Registrar';
+import { TaskContext } from '@/service/task/TaskMaster';
+import { Sparse } from '@/service/task/cqrs/Command';
+import { DeepPartial } from '@/lib/util';
+import {
+  CommandType,
+  MicrowaveState,
+  StartCookingCommand,
+} from '@/service/task/cqrs/microwave/MicrowaveFlow';
 
 const isIdentity = (identity: DID | Identity): identity is Identity =>
   Object.prototype.hasOwnProperty.call(identity, 'did');
@@ -62,16 +68,23 @@ export class DefaultAgent implements Agent {
   }
 
   // temp
-  startSlowTask(delay?: number): Task<string> {
-    return this.context.taskMaster.register(new DummyTask(delay));
+  startSlowTask(delay?: number): TaskContext<MicrowaveState> {
+    const taskContext: TaskContext<MicrowaveState> = this.context.taskMaster.registerTask();
+
+    const command: Sparse<StartCookingCommand> = {
+      durationMS: delay || 2000,
+    };
+
+    taskContext.dispatch(CommandType.StartCooking, command);
+
+    return taskContext;
   }
 
-  // temp
-  allResults(): Promise<any[]> {
-    return this.context.taskMaster.allResults();
+  get tasks() {
+    return this.context.taskMaster.tasks;
   }
 
-  static for(identity: DID | Identity, context?: Partial<Context>) {
+  static for(identity: DID | Identity, context?: DeepPartial<Context>) {
     if (isIdentity(identity)) {
       return new Builder(identity.did).withKeys(
         identity.signingKey,
@@ -82,7 +95,7 @@ export class DefaultAgent implements Agent {
     return new Builder(identity, context);
   }
 
-  static register(context?: Partial<Context>) {
+  static register(context?: DeepPartial<Context>) {
     return new Registrar(context);
   }
 }

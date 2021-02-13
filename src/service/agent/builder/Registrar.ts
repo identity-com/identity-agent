@@ -11,13 +11,14 @@ import {
 } from '@/lib/crypto/utils';
 import { Registry } from '@/service/did/resolver/Registry';
 import { Builder } from '@/service/agent/builder/Builder';
+import { DeepPartial } from '@/lib/util';
 
 export class Registrar {
   signingKey?: AsymmetricKey;
   encryptionKey?: nacl.BoxKeyPair;
-  context: Partial<Context>;
+  context: DeepPartial<Context>;
 
-  constructor(context: Partial<Context> = {}) {
+  constructor(context: DeepPartial<Context> = {}) {
     this.context = context;
   }
 

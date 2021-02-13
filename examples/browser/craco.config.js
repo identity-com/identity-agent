@@ -5,7 +5,6 @@ module.exports = {
       webpackConfig.resolve.alias.stream = 'stream-browserify'
       webpackConfig.resolve.alias.buffer = 'buffer'
 
-      console.log(webpackConfig);
       return webpackConfig;
     }
   },

@@ -1,25 +1,32 @@
-import { CredentialConstraints } from '@/service/task/subject/Presentation';
 import { Agent, DefaultAgent } from './internal';
 import { DID } from '@/api/DID';
-import { PresentationRequestTask } from '@/service/task/verifier/PresentationRequest';
+import { TaskContext } from '@/service/task/TaskMaster';
+import { Sparse } from '@/service/task/cqrs/Command';
+import {
+  CommandType,
+  PresentationRequest,
+  PresentationRequestState,
+  RequestPresentationCommand,
+} from '@/service/task/cqrs/verifier/PresentationRequestFlow';
 
 export class Verifier extends DefaultAgent {
   constructor(private me: Agent) {
     super(me.document, me.context);
   }
 
-  requestPresentation(
+  requestPresentation<S extends PresentationRequestState>(
     subject: DID,
-    constraints: CredentialConstraints
-  ): PresentationRequestTask {
-    return this.me.context.taskMaster.register(
-      new PresentationRequestTask(
-        {
-          verifier: this.me.did,
-          constraints,
-        },
-        subject
-      )
-    );
+    request: PresentationRequest
+  ): TaskContext<S> {
+    const taskContext: TaskContext<S> = this.me.context.taskMaster.registerTask();
+
+    const command: Sparse<RequestPresentationCommand> = {
+      subject,
+      request,
+    };
+
+    taskContext.dispatch(CommandType.Request, command);
+
+    return taskContext;
   }
 }

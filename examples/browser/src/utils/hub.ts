@@ -1,7 +1,7 @@
-// ES6 import or TypeScript
 import io from "socket.io-client";
 import { Agent } from "identity-agent";
 import { Message } from '../App';
+import { DID, PayloadType } from '../../../../src';
 
 type Service = {
   type: string,
@@ -11,6 +11,18 @@ const isMessagingService = (service: Service) => service.type === 'MessagingServ
 const getHub = (agent: Agent) => agent.document?.service?.find(isMessagingService)?.serviceEndpoint;
 
 const randomId = () => btoa(`${Math.random()}`).substr(10, 5);
+
+const getMessageType = (payload: Record<string, any>):PayloadType => {
+  if (payload.message) return 'Message';
+  if (payload.presentationRequest) return 'PresentationRequest';
+  if (payload.presentation) return 'Presentation'
+
+  return 'Message'
+}
+
+const content = (payload: Record<string, any>):string =>
+  payload.message || payload.presentationRequest || payload.presentation
+
 
 export const connect = (agent: Agent, callback: (error: any, message?: Message) => void) => {
   const hub = getHub(agent);
@@ -52,10 +64,11 @@ export const connect = (agent: Agent, callback: (error: any, message?: Message) 
       const verifiedMessage = await agent.verify(decryptedMessage);
 
       const message = {
-        sender: verifiedMessage.issuer,
-        content: verifiedMessage.payload.message,
+        sender: verifiedMessage.issuer as DID,
+        content: content(verifiedMessage.payload),
         receivedAt: new Date(),
-        id: randomId()
+        id: randomId(),
+        type: getMessageType(verifiedMessage.payload)
       }
 
       callback(null, message);

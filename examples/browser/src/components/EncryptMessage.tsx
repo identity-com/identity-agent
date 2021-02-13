@@ -1,8 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { CopyToClipboard } from "react-copy-to-clipboard";
+import React, { useCallback, useState } from 'react';
 import { Agent, DID } from "identity-agent";
 
-import { CheckIcon } from "./icons/CheckIcon";
 import { Button } from "./Button";
 import { TwoColumnContainer } from "./TwoColumnContainer";
 import { TextArea } from './TextArea';
@@ -11,16 +9,12 @@ type Props = {
   agent: Agent;
   message: string;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
-  onCopy: () => void;
-  showIcon?: boolean;
 };
 
 export const EncryptMessage = ({
                                  agent,
                                  message,
                                  setMessage,
-                                 onCopy,
-                                 showIcon
                                }: Props) => {
   const [recipient, setRecipient] = useState<string>("");
 

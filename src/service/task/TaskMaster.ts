@@ -1,89 +1,183 @@
-import { Task } from '@/service/task/Task';
-import { AgentStorage } from '@/service/storage/AgentStorage';
-import { DummyTask } from '@/service/task/DummyTask';
+import { Context } from '@/api/Agent';
+import { CommandDispatcher } from '@/service/task/cqrs/CommandDispatcher';
+import { TaskRepository } from '@/service/task/cqrs/TaskRepository';
 import {
-  PresentationRequest,
-  PresentationTask,
-} from '@/service/task/subject/Presentation';
-import { CredentialRequestTask } from '@/service/task/subject/CredentialRequest';
-import { PresentationRequestTask } from '@/service/task/verifier/PresentationRequest';
-import { DID } from '@/api/DID';
-
-const STORAGE_FOLDER = 'tasks';
+  Command,
+  CommandType,
+  SparseCommand,
+} from '@/service/task/cqrs/Command';
+import { Task } from '@/service/task/cqrs/Task';
+import { EventBus, Handler } from '@/service/task/cqrs/EventBus';
+import { EventType, TaskEvent } from '@/service/task/cqrs/TaskEvent';
+import {
+  Handler as CommandHandler,
+  isCommandHandler,
+  wrap,
+} from '@/service/task/cqrs/CommandHandler';
+import { register as registerMicrowaveFlow } from '@/service/task/cqrs/microwave/MicrowaveFlow';
+import { register as registerPresentationRequestFlow } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
+import { register as registerPresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
+import { register as registerCredentialRequestFlow } from '@/service/task/cqrs/subject/CredentialRequestFlow';
+import { register as registerRequestInputFlow } from '@/service/task/cqrs/requestInput/RequestInput';
 
 export interface TaskMaster {
-  register<T extends Task<any>>(task: T): T;
-  allResults(): Promise<any[]>;
+  dispatch<CT extends string, C extends Command<CT>>(
+    type: CT,
+    command: C
+  ): Promise<void>;
+  registerCommandHandler<
+    S, // Task state
+    C extends Command<CT>, // command type
+    CT extends string // command name string
+  >(
+    commandType: CT,
+    handler: CommandHandler<CT, C, S>,
+    overwrite?: boolean
+  ): void;
+  registerEventHandler<T extends string, S>(
+    type: T,
+    handler: Handler<T, S>,
+    overwrite?: boolean
+  ): void;
+
+  registerTask<S>(): TaskContext<S>;
+  waitForEvent<T extends string, S>(
+    type: T,
+    taskId?: string
+  ): Promise<TaskEvent<T, S>>;
+
+  tasks: TaskContext<any>[];
 }
 
-// A static mapping from task name to constructor
-// this implementation will likely change in the future
-// to allow for custom tasks
-const taskRegistry: Record<string, () => Task<any>> = {
-  [DummyTask.TYPE]: () => new DummyTask(),
-  [PresentationTask.TYPE]: () => new PresentationTask(),
-  [PresentationRequestTask.TYPE]: (
-    request?: PresentationRequest,
-    subject?: DID
-  ) => new PresentationRequestTask(request, subject),
-  [CredentialRequestTask.TYPE]: () => new CredentialRequestTask(),
-};
-
-type SerializedTask = {
-  type: string;
-  contents: Record<string, any>;
-};
-
-const serializeTask = (task: Task<any>): SerializedTask => {
-  const type = task.type;
-  const contents = task.serialize();
-
-  return {
-    type,
-    contents,
-  };
-};
-
-const deserializeTask = (serializedTask: SerializedTask) => {
-  const creatorFunction = taskRegistry[serializedTask.type];
-
-  if (!creatorFunction)
-    throw new Error(
-      `Unable to deserialize task of type ${serializedTask.type}`
-    );
-
-  const unpopulatedTask = creatorFunction();
-
-  unpopulatedTask.deserialize(serializedTask.contents);
-
-  return unpopulatedTask;
-};
+export interface TaskContext<S> {
+  waitForDone(): Promise<TaskEvent<EventType.Done, S>>;
+  waitForEvent<ET extends string, S>(type: ET): Promise<TaskEvent<ET, S>>;
+  dispatch<CT extends string, C extends SparseCommand<CT>>(
+    type: CT,
+    command: C
+  ): Promise<void>;
+  state: S;
+  id: string;
+  task: Task<S>;
+}
 
 export class DefaultTaskMaster implements TaskMaster {
-  constructor(private storage: AgentStorage, private tasks: Task<any>[]) {}
+  private readonly commandDispatcher: CommandDispatcher;
+  private readonly taskRepository: TaskRepository;
+  private readonly eventBus: EventBus;
 
-  static async rehydrate(storage: AgentStorage): Promise<TaskMaster> {
-    const tasksInStorage = await storage.findKeys(STORAGE_FOLDER);
+  constructor(private context: Context) {
+    this.taskRepository = new TaskRepository(this.context.storage);
+    this.commandDispatcher = new CommandDispatcher(this.taskRepository);
+    this.eventBus = new EventBus(this.taskRepository);
 
-    const rehydratedTaskPromises = tasksInStorage.map(async (key) => {
-      const serializedTask = await storage.get(key);
-      return deserializeTask(serializedTask as SerializedTask);
-    });
+    // TODO perhaps move this to a module
+    // Register flows
 
-    const rehydratedTasks = await Promise.all(rehydratedTaskPromises);
-
-    return new DefaultTaskMaster(storage, rehydratedTasks);
+    // TODO Temp - DI library needed
+    const populatedContext = { ...context, taskMaster: this };
+    registerMicrowaveFlow(populatedContext);
+    registerPresentationRequestFlow(populatedContext);
+    registerPresentationFlow(populatedContext);
+    registerCredentialRequestFlow(populatedContext);
+    registerRequestInputFlow(populatedContext);
   }
 
-  register<T extends Task<any>>(task: T): T {
-    this.tasks.push(task);
-
-    this.storage.put([STORAGE_FOLDER, task.id], serializeTask(task));
-
-    return task;
+  registerFlows(flowRegister: (context: Context) => void) {
+    flowRegister(this.context);
   }
 
-  allResults(): Promise<any[]> {
-    return Promise.all(this.tasks.map((t) => t.result()));
+  static DefaultTaskContext = class<S> implements TaskContext<S> {
+    constructor(
+      readonly taskMaster: DefaultTaskMaster,
+      readonly task: Task<S>
+    ) {}
+
+    waitForEvent<ET extends string, S>(type: ET): Promise<TaskEvent<ET, S>> {
+      return this.taskMaster.eventBus.waitForEvent(type, this.task.id);
+    }
+
+    waitForDone<S>(): Promise<TaskEvent<EventType.Done, S>> {
+      return this.waitForEvent(EventType.Done);
+    }
+
+    dispatch<CT extends string, C extends SparseCommand<CT>>(
+      type: CT,
+      command: C
+    ): Promise<void> {
+      const commandForTask = {
+        taskId: this.task.id,
+        ...command,
+      };
+      return this.taskMaster.commandDispatcher.execute(type, commandForTask);
+    }
+
+    get state(): S {
+      return this.task.state;
+    }
+
+    get id(): string {
+      return this.task.id;
+    }
+  };
+
+  static async rehydrate(context: Context): Promise<TaskMaster> {
+    const taskMaster = new DefaultTaskMaster(context);
+
+    await taskMaster.taskRepository.rehydrate();
+
+    taskMaster.tasks.map((t) => t.dispatch(CommandType.Rehydrate, {}));
+
+    return taskMaster;
+  }
+
+  dispatch<CT extends string, C extends Command<CT>>(type: CT, command: C) {
+    return this.commandDispatcher.execute(type, command);
+  }
+
+  registerCommandHandler<
+    S, // Task state
+    C extends Command<CT>, // command type
+    CT extends string // command name string
+  >(
+    commandType: CT,
+    handler: CommandHandler<CT, C, S>,
+    overwrite: boolean = false
+  ) {
+    const commandHandler = isCommandHandler(handler) ? handler : wrap(handler);
+
+    commandHandler.eventBus = this.eventBus; // TODO add IoC library or refactor
+    return this.commandDispatcher.registerCommandHandler(
+      commandType,
+      commandHandler,
+      overwrite
+    );
+  }
+
+  registerEventHandler<T extends string, S>(
+    type: T,
+    handler: Handler<T, S>,
+    overwrite: boolean = false
+  ) {
+    return this.eventBus.registerHandler(type, handler, overwrite);
+  }
+
+  registerTask<S>(): TaskContext<S> {
+    const task = new Task<S>();
+    this.taskRepository.add(task);
+    return new DefaultTaskMaster.DefaultTaskContext(this, task);
+  }
+
+  get tasks(): TaskContext<any>[] {
+    return this.taskRepository.tasks.map(
+      (t) => new DefaultTaskMaster.DefaultTaskContext(this, t)
+    );
+  }
+
+  waitForEvent<ET extends string, S>(
+    type: ET,
+    taskId?: string
+  ): Promise<TaskEvent<ET, S>> {
+    return this.eventBus.waitForEvent(type, taskId);
   }
 }

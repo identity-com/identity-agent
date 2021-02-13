@@ -3,7 +3,8 @@ import { PayloadType } from '@/service/transport/Transport';
 import { propEq } from 'ramda';
 
 const payloadTypeToService: Record<PayloadType, string> = {
-  Presentation: 'AgentService',
+  Presentation: 'MessagingService',
+  PresentationRequest: 'MessagingService',
   Message: 'MessagingService',
 };
 

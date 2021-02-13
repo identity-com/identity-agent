@@ -42,14 +42,16 @@ export class HttpTransport implements Transport {
     type: PayloadType,
     options: TransportOptions
   ): Promise<Response> {
-    const doc = await this.resolve(recipient);
-    const service = serviceFor(doc, type);
-    if (!service)
-      throw new Error(
+    const document = await this.resolve(recipient);
+    const service = serviceFor(document, type);
+    if (!service) {
+      const message =
         recipient +
-          ' has no suitable service endpoint for payload of type ' +
-          type
-      );
+        ' has no suitable service endpoint for payload of type ' +
+        type;
+      console.error(message, JSON.stringify({ document }, null, 1));
+      throw new Error(message);
+    }
 
     const endpoint = service.serviceEndpoint;
 
@@ -63,6 +65,6 @@ export class HttpTransport implements Transport {
       .post(endpoint, body, {
         'content-type': 'application/json',
       })
-      .then(() => ({ status: 'ok' }));
+      .then((response) => ({ status: 'ok', response }));
   }
 }

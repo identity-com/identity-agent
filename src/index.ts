@@ -1,17 +1,16 @@
 import { Agent, Config } from '@/api/internal';
-import * as Presentation from '@/service/task/subject/Presentation';
-import * as PresentationRequest from '@/service/task/verifier/PresentationRequest';
 import { DID } from '@/api/DID';
+import { PayloadType } from '@/service/transport/Transport';
 import * as demo from './demo';
-import { EventType, CommonEventType } from './service/task/EventType';
+import { Presentation } from './service/task/cqrs/subject/PresentationFlow';
+import { PresentationRequest } from './service/task/cqrs/verifier/PresentationRequestFlow';
 
 export {
   Agent,
-  Presentation,
-  PresentationRequest,
-  EventType,
-  CommonEventType,
   demo,
   DID,
   Config,
+  PayloadType,
+  Presentation,
+  PresentationRequest,
 };

@@ -1,102 +1,93 @@
 import { example as did } from '../fixtures/did';
+import { xprv as dummyXprv } from '../fixtures/keys';
 import { Agent } from '@/api/Agent';
-import { CredentialConstraints } from '../../src/service/task/subject/Presentation';
-import { Verifier } from '../../src/api/Verifier';
-import { DefaultTask } from '../../src/service/task/DefaultTask';
-import { DoneEvent } from '../../src/service/task/DoneEvent';
-import { PresentationRequestEventType } from '../../src/service/task/verifier/PresentationRequest';
-import { Task } from '../../src/service/task/Task';
+import { Verifier } from '@//api/Verifier';
+import * as nacl from 'tweetnacl';
+import { TaskEvent } from '@/service/task/cqrs/TaskEvent';
+import { repeat, times } from 'ramda';
+import {
+  ProcessPresentationResponseCommand,
+  EventType,
+  CommandType,
+  PresentationRequestState,
+} from '../../src/service/task/cqrs/verifier/PresentationRequestFlow';
+import { Sparse } from '../../src/service/task/cqrs/Command';
+import { Presentation } from '../../src';
 
 const subjectDID = 'did:dummy:receiver';
 
-// a simple task class with dummy implementations for unnecessary functions,
-// used to simplify test cases
-class SimpleTask<R> extends DefaultTask<R> {
-  deserialize(_serialized: Record<string, any>): void {}
-
-  protected initialize(): void {}
-
-  serialize(): Record<string, any> {
-    return {};
-  }
-}
-
-const makeSimpleTask = <R>(
-  type: string,
-  callback: (thisTask: Task<R>) => {}
-): Task<R> => {
-  // A dummy task to download evidence for a credential, once the presentation is received
-  // the download is configured to take 500ms
-  return new (class extends SimpleTask<R> {
-    constructor() {
-      super(type);
-      callback(this);
-    }
-  })();
-};
-
-describe('Verifier flows', () => {
+describe('PresentationRequestFlow flows', () => {
   let verifier: Verifier;
 
   beforeEach(async () => {
-    verifier = (await Agent.for(did).build()).asVerifier();
+    const agent = await Agent.for(did)
+      .withKeys(dummyXprv, nacl.box.keyPair())
+      .build();
+    verifier = agent.asVerifier();
   });
 
   describe('Presentation Requests', () => {
+    const presentationRequest = { question: 'What is your name?' };
+    const presentation = { answer: 'It is Arthur, King of the Britons' };
+
     it('can request a presentation', async () => {
       const presentationTask = verifier.requestPresentation(
         subjectDID,
-        new CredentialConstraints()
+        presentationRequest
       );
 
-      const presentation = {};
+      await presentationTask.waitForEvent(EventType.Requested);
 
       // resolves the task. No need to await the result,
       // that will happen in the next step
-      presentationTask.receivePresentation(presentation);
-
-      await presentationTask.result();
-    });
-
-    it('can inject task-based event handlers on presentation receipt', async () => {
-      const expectedEvidence = 'dummy evidence data for presentation';
-
-      // create a handler that triggers the download task
-      let downloadEvidenceTask: Task<string>;
-      const downloadEvidenceOnReceiptHandler = {
-        handle: () => {
-          // A dummy task to download evidence for a credential, once the presentation is received
-          // the download is configured to take 500ms
-          downloadEvidenceTask = makeSimpleTask(
-            'DummyDownloadEvidenceTask',
-            // pretend to download the evidence from somewhere
-            (thisTask) =>
-              setTimeout(
-                () => thisTask.emit(new DoneEvent(expectedEvidence)),
-                500
-              )
-          );
-          return downloadEvidenceTask;
-        },
+      const command: Sparse<ProcessPresentationResponseCommand> = {
+        response: presentation,
       };
 
-      // request a new presentation, and connect the
-      // download evidence task to the PresentationReceived event
-      const presentationTask = verifier
-        .requestPresentation(subjectDID, new CredentialConstraints())
-        .on(
-          PresentationRequestEventType.PresentationReceived,
-          downloadEvidenceOnReceiptHandler
-        );
+      presentationTask.dispatch(CommandType.ProcessResponse, command);
 
-      // trigger the receipt of the presentation and wait for the task to complete
-      presentationTask.receivePresentation({});
-      await presentationTask.result();
+      await presentationTask.waitForDone();
 
-      // check that the presentation task triggered
-      // and resolved the download evidence task
-      return expect(downloadEvidenceTask!.result()).resolves.toEqual(
-        expectedEvidence
+      expect(presentationTask.state.response).toEqual(presentation);
+    });
+
+    it('can inject functional event handlers on presentation receipt', async () => {
+      // send five presentation requests and store the results in a dummy store
+      const expectedTaskCount = 5;
+      const receivedPresentationRepository: Presentation[] = [];
+
+      // register the handler to add the presentations to the repository
+      const handler = (
+        event: TaskEvent<
+          EventType.PresentationReceived,
+          PresentationRequestState
+        >
+      ) => {
+        receivedPresentationRepository.push(event.payload.response!);
+      };
+      verifier.context.taskMaster.registerEventHandler(
+        EventType.PresentationReceived,
+        handler
+      );
+
+      // create and resolve 5 presentationRequest 5 tasks
+      const tasks = times(
+        () => verifier.requestPresentation(subjectDID, presentationRequest),
+        expectedTaskCount
+      );
+      await Promise.all(
+        tasks.map(async (t) => {
+          await t.waitForEvent(EventType.Requested);
+          await t.dispatch(CommandType.ProcessResponse, {
+            response: presentation,
+          });
+          return t.waitForDone();
+        })
+      );
+
+      // expect five presentations
+      expect(receivedPresentationRepository).toEqual(
+        expect.arrayContaining(repeat(presentation, expectedTaskCount))
       );
     });
   });

@@ -1,7 +1,7 @@
-import { Agent, Config } from "identity-agent";
-import { DID } from '../../../../src';
+import { Agent, Config, DID } from "identity-agent";
 import { encode, decode } from 'bs58';
 import nacl from 'tweetnacl';
+import { PresentationRequest } from '../../../../src';
 
 export const config: Config = {
   // WARNING - for demo purposes only - do not pass AWS keys if using this on a browser in production
@@ -39,4 +39,12 @@ export const createAgent = async () => {
   localStorage.setItem('myDID', agent.did);
 
   return agent;
+}
+
+export const handlePresentationRequest = async (agent: Agent, request: PresentationRequest, verifier: DID) => {
+  alert('Request for presentation: ' + JSON.stringify(request));
+
+  const task = agent.asSubject().resolvePresentationRequest(request, verifier);
+
+  console.log("Task created: ", task);
 }

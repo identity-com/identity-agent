@@ -3,6 +3,8 @@ import { xprv as dummyXprv } from '../fixtures/keys';
 import { Agent } from '@/api/Agent';
 import * as nacl from 'tweetnacl';
 import { dummyEncryptKey } from '../../src/service/did/generator/generate';
+import { propEq } from 'ramda';
+import { EventType } from '../../src/service/task/cqrs/TaskEvent';
 
 const { objectContaining } = expect;
 
@@ -52,19 +54,38 @@ describe('Simple Agent flows', () => {
       jest.setTimeout(5000);
       const task = agent.startSlowTask(2000);
 
-      const result = await task.result();
+      await task.waitForDone();
+    });
 
-      expect(result).toEqual('ding!');
+    it('can run a simple task - global wait', async () => {
+      jest.setTimeout(5000);
+      agent.startSlowTask(2000);
+
+      await agent.context.taskMaster.waitForEvent(EventType.Done);
+    });
+
+    it('can run a simple task - wait by ID', async () => {
+      jest.setTimeout(5000);
+      const taskContext = await agent.startSlowTask(2000);
+
+      await agent.context.taskMaster.waitForEvent(
+        EventType.Done,
+        taskContext.id
+      );
     });
 
     it('can resume a task', async () => {
       jest.setTimeout(5000);
-      agent.startSlowTask(2000);
+      const task = agent.startSlowTask(2000);
+
+      await task.waitForEvent(EventType.Started);
 
       const newAgent = await Agent.for(did).build();
-      const results = await newAgent.allResults();
 
-      expect(results[0]).toEqual('ding!');
+      const newTask = newAgent.tasks.find(propEq('id', task.id));
+
+      expect(newTask).toBeDefined();
+      await newTask!.waitForDone();
     });
   });
 });

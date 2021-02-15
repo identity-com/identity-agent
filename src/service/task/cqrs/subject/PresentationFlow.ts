@@ -122,7 +122,7 @@ export class RejectCommandHandler extends CommandHandler<
 }
 
 export interface RespondCommand extends Command<CommandType.Respond> {
-  readonly response: Presentation;
+  readonly presentation: Presentation;
 }
 export class RespondCommandHandler extends CommandHandler<
   CommandType.Respond,
@@ -136,7 +136,8 @@ export class RespondCommandHandler extends CommandHandler<
   async execute(command: RespondCommand, task: Task<PresentationState>) {
     const verifierResponse = await this.transport.send(
       task.state.verifier,
-      command.response,
+      // TODO does this wrapping belong in the transport layer?
+      { presentation: command.presentation },
       'Presentation'
     );
 
@@ -197,6 +198,7 @@ export class ConfirmedEventHandler implements Handler<EventType.Confirmed> {
   ) {
     this.taskMaster.dispatch(CommandType.Respond, {
       taskId: task.id,
+      presentation: task.state.presentation,
     });
   }
 }

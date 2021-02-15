@@ -1,7 +1,6 @@
 import io from "socket.io-client";
-import { Agent } from "identity-agent";
+import { Agent, DID, PayloadType } from "identity-agent";
 import { Message } from '../App';
-import { DID, PayloadType } from '../../../../src';
 
 type Service = {
   type: string,
@@ -57,11 +56,11 @@ export const connect = (agent: Agent, callback: (error: any, message?: Message) 
   });
 
   socket.on('did/:did/message created', async (encryptedMessage: any) => {
-    console.log('received', encryptedMessage);
-
     try {
       const decryptedMessage = await agent.decrypt(encryptedMessage);
       const verifiedMessage = await agent.verify(decryptedMessage);
+
+      console.log('received', verifiedMessage);
 
       const message = {
         sender: verifiedMessage.issuer as DID,

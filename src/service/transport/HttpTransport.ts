@@ -62,6 +62,8 @@ export class HttpTransport implements Transport {
       throw new Error('DID service endpoints not yet supported');
     }
 
+    console.log(`Sending to ${recipient}`, payload);
+
     const body = await this.makeHttpBody(payload, recipient, options);
 
     return this.http

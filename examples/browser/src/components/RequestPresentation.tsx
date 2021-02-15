@@ -3,50 +3,54 @@ import { Agent, DID } from "identity-agent";
 
 import { Button } from "./Button";
 import { TwoColumnContainer } from "./TwoColumnContainer";
+import { TextArea } from './TextArea';
 
-type Props = { agent: Agent };
-export const EncryptMessage = ({ agent }: Props) => {
-  const [message, setMessage] = useState<string>("")
+type Props = {
+  agent: Agent;
+};
+
+export const RequestPresentation = ({ agent }: Props) => {
+  const [request, setRequest] = useState<string>("")
   const [recipient, setRecipient] = useState<string>("");
 
-  const sendMessage = useCallback(
-    () => agent.send({ message }, recipient as DID),
-    [recipient, message, agent]
+  const sendPresentationRequest = useCallback(
+    () => {
+      const task = agent.asVerifier().requestPresentation(recipient as DID, JSON.parse(request))
+      console.log("Created Task", task);
+    },
+    [recipient, request, agent]
   );
 
   return (
     <TwoColumnContainer
-      header={"Encrypt"}
+      header={"Request Presentation"}
       columnOne={
-        <div className="mt-6 grid grid-cols-1 gap-y-6">
-          <div className="mt-1">
+        <form className="mt-6 grid grid-cols-1 gap-y-6">
           <div>
             <label
-              htmlFor="encryptMessage"
+              htmlFor="presentationRequest"
               className="block text-sm font-medium text-gray-700"
             >
-              Message
+              Request
             </label>
-            <div className="mt-1 flex rounded-md shadow-sm">
-              <input
-                id="encryptMessage"
-                onChange={e => setMessage(e.target.value)}
-                type="text"
+            <div className="mt-1">
+              <TextArea
+                id="presentationRequest"
+                onChange={e => setRequest(e.target.value)}
                 name="about"
                 required
-                className="flex-1 focus:ring-blue-500 focus:border-blue-500 block w-full min-w-0 rounded-none rounded-md sm:text-sm border-gray-300"
               />
             </div>
           </div>
-          </div>
-        </div>
+
+        </form>
       }
       columnTwo={
         <div className="mt-6">
           <div className="mt-1">
             <div>
               <label
-                htmlFor="messageFor"
+                htmlFor="requestFor"
                 className="block text-sm font-medium text-gray-700"
               >
                 For (Recipient)
@@ -56,14 +60,14 @@ export const EncryptMessage = ({ agent }: Props) => {
                   required
                   onChange={e => setRecipient(e.target.value)}
                   type="text"
-                  name="messageFor"
-                  id="messageFor"
+                  name="requestFor"
+                  id="requestFor"
                   className="flex-1 focus:ring-blue-500 focus:border-blue-500 block w-full min-w-0 rounded-none rounded-md sm:text-sm border-gray-300"
                 />
               </div>
             </div>
             <div className="mt-2">
-              <Button onClick={sendMessage}>Send</Button>
+              <Button onClick={sendPresentationRequest}>Send</Button>
             </div>
           </div>
         </div>

@@ -52,7 +52,7 @@ export class DefaultEventBus implements EventBus {
     eventPayload: Partial<S>,
     task: Task<S>
   ) {
-    console.log(`Event emitted: ${type}`);
+    console.log(`Event emitted: ${type}`, eventPayload);
     const event = { type, payload: eventPayload };
     this.taskRepository.update(task.id, event);
     return this.eventEmitter.emit(type, event, task);

@@ -31,7 +31,8 @@
     "web-vitals": "^0.2.4"
   },
   "resolutions": {
-    "stream-browserify": "^3.0.0"
+    "stream-browserify": "^3.0.0",
+    "graceful-fs": "4.2.4"
   },
   "scripts": {
     "start": "craco start",

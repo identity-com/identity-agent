@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Agent, DID, PayloadType } from "identity-agent";
 
-import { createAgent, handlePresentationRequest } from './utils/agent';
+import { createAgent, handlePresentationRequest, handlePresentation } from './utils/agent';
 
 import { Header } from "./components/Header";
 import { DIDDisplay } from "./components/DIDDisplay";
 import { EncryptMessage } from "./components/EncryptMessage";
 import {connect} from "./utils/hub";
 import { IncomingMessages } from './components/IncomingMessages';
+import { RequestPresentation } from './components/RequestPresentation';
 
 export type Message = {
   content: string,
@@ -19,22 +20,28 @@ export type Message = {
 
 const App = () => {
   const [copied, setCopied] = useState<"did" | "message" | null>(null);
-  const [message, setMessage] = useState<string>("");
   const [incomingMessages, setIncomingMessages] = useState<Message[]>([]);
   const [agent, setAgent] = useState<Agent>();
-
 
   useEffect(() => {
     const listener = (error: any, message:Message | undefined) => {
       if (error) console.error(error);
       if (!agent) return;
+
+      const addMessage = (message: Message) => setIncomingMessages(incomingMessages => [message, ...incomingMessages])
+
       if (message) {
         switch (message.type) {
           case 'Message':
-            setIncomingMessages(incomingMessages => [message, ...incomingMessages])
+            addMessage(message)
             break;
           case 'PresentationRequest':
+            addMessage(message)
             handlePresentationRequest(agent, message.content, message.sender);
+            break;
+          case 'Presentation':
+            addMessage(message)
+            handlePresentation(agent, message.content, message.sender);
             break;
         }
       }
@@ -68,11 +75,9 @@ const App = () => {
             <hr className="mt-2 mb-2"/>
             <IncomingMessages messages={incomingMessages}/>
             <hr className="mt-2 mb-2"/>
-            <EncryptMessage
-              agent={agent}
-              message={message}
-              setMessage={setMessage}
-            />
+            <EncryptMessage agent={agent} />
+            <hr className="mt-2 mb-2"/>
+            <RequestPresentation agent={agent} />
           </>
         )}
       </div>

@@ -41,9 +41,9 @@ export const wire = (container: Container) => {
     container,
     TYPES.PresentationVerification
   )?.to(StubPresentationVerification);
-  bindIfAbsent<Presenter>(container, TYPES.Presenter)
-    ?.to(StubPresenter)
-    .inSingletonScope();
+  bindIfAbsent<Presenter>(container, TYPES.Presenter)?.toConstantValue(
+    new StubPresenter()
+  );
 
   bindIfAbsent<TaskMaster>(container, TYPES.TaskMaster)?.to(DefaultTaskMaster);
   bindIfAbsent<TaskRepository>(container, TYPES.TaskRepository)

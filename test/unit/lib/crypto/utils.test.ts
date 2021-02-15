@@ -1,5 +1,5 @@
 import * as utils from '@/lib/crypto/utils';
-import { defaultDIDResolver } from '@/service/did/resolver/Resolver';
+import { buildDIDResolver } from '@/service/did/resolver/Resolver';
 import { example as did } from '../../../fixtures/did';
 import { xpub, xprv } from '../../../fixtures/keys';
 import { dummyEncryptKey } from '../../../../src/service/did/generator/generate';
@@ -25,7 +25,7 @@ describe('crypto utils', () => {
     it('should create and sign a JWT with an xprv', async () => {
       const key = utils.xprvToBytes(xprv);
       const jwt = await utils.createJWT(did, key, {});
-      const verifiedJWT = await utils.verifyJWT(jwt, defaultDIDResolver({}));
+      const verifiedJWT = await utils.verifyJWT(jwt, buildDIDResolver({}));
 
       expect(verifiedJWT.doc.id).toEqual(did);
     });
@@ -34,7 +34,7 @@ describe('crypto utils', () => {
   describe('encrypt', () => {
     it('should encrypt data as JWE', async () => {
       const message = 'hello';
-      const jwe = await utils.encrypt(message, did, defaultDIDResolver({}));
+      const jwe = await utils.encrypt(message, did, buildDIDResolver({}));
 
       const decrypted = await utils.decrypt(jwe, dummyEncryptKey);
 

@@ -4,7 +4,6 @@ import { Command } from '@/service/task/cqrs/Command';
 import { CredentialRequest } from '@/service/task/cqrs/subject/CredentialRequestFlow';
 import { CommandHandler } from '@/service/task/cqrs/CommandHandler';
 import { Transport, Response } from '@/service/transport/Transport';
-import { Context } from '@/api/Agent';
 import { Presenter } from '@/service/credential/Presenter';
 import { EventHandler } from '@/service/task/cqrs/EventHandler';
 import {
@@ -14,6 +13,9 @@ import {
 import { TaskContext, TaskMaster } from '@/service/task/TaskMaster';
 import { PresentationRequest } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
 import * as CredentialRequestFlow from '@/service/task/cqrs/subject/CredentialRequestFlow';
+import { bind } from '@/wire/util';
+import { TYPES } from '@/wire/type';
+import { Container } from 'inversify';
 
 export type Presentation = {};
 
@@ -40,7 +42,6 @@ export enum EventType {
 
 export enum CommandType {
   Request = 'PresentationFlow.Request',
-  RequestCredential = 'PresentationFlow.RequestCredential',
   Confirm = 'PresentationFlow.Confirm',
   Reject = 'PresentationFlow.Reject',
   Respond = 'PresentationFlow.Respond',
@@ -152,6 +153,7 @@ export class RespondCommandHandler extends CommandHandler<
   }
 }
 
+// Simplify event handler definitions
 type Handler<ET extends string> = EventHandler<ET, PresentationState>;
 
 // TODO this would be injected
@@ -199,39 +201,44 @@ export class ConfirmedEventHandler implements Handler<EventType.Confirmed> {
   }
 }
 
-export const register = (context: Context) => {
-  context.taskMaster.registerCommandHandler(
-    CommandType.Request,
-    new RequestPresentationCommandHandler(context.credential.presenter)
-  );
+export const register = (container: Container) =>
+  bind(
+    container,
+    (taskMaster: TaskMaster, transport: Transport, presenter: Presenter) => {
+      taskMaster.registerCommandHandler(
+        CommandType.Request,
+        new RequestPresentationCommandHandler(presenter)
+      );
 
-  context.taskMaster.registerCommandHandler(
-    CommandType.Confirm,
-    new ConfirmCommandHandler()
-  );
+      taskMaster.registerCommandHandler(
+        CommandType.Confirm,
+        new ConfirmCommandHandler()
+      );
 
-  context.taskMaster.registerCommandHandler(
-    CommandType.Reject,
-    new RejectCommandHandler()
-  );
+      taskMaster.registerCommandHandler(
+        CommandType.Reject,
+        new RejectCommandHandler()
+      );
 
-  context.taskMaster.registerCommandHandler(
-    CommandType.Respond,
-    new RespondCommandHandler(context.transport)
-  );
+      taskMaster.registerCommandHandler(
+        CommandType.Respond,
+        new RespondCommandHandler(transport)
+      );
 
-  context.taskMaster.registerEventHandler(
-    EventType.MissingCredentials,
-    new MissingCredentialsEventHandler(context.taskMaster)
-  );
+      taskMaster.registerEventHandler(
+        EventType.MissingCredentials,
+        new MissingCredentialsEventHandler(taskMaster)
+      );
 
-  context.taskMaster.registerEventHandler(
-    EventType.Resolved,
-    new ResolvedEventHandler(context.taskMaster)
-  );
+      taskMaster.registerEventHandler(
+        EventType.Resolved,
+        new ResolvedEventHandler(taskMaster)
+      );
 
-  context.taskMaster.registerEventHandler(
-    EventType.Confirmed,
-    new ConfirmedEventHandler(context.taskMaster)
-  );
-};
+      taskMaster.registerEventHandler(
+        EventType.Confirmed,
+        new ConfirmedEventHandler(taskMaster)
+      );
+    },
+    [TYPES.TaskMaster, TYPES.Transport, TYPES.Presenter]
+  )();

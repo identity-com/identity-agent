@@ -1,4 +1,3 @@
-import { Context } from '@/api/Agent';
 import { CommandDispatcher } from '@/service/task/cqrs/CommandDispatcher';
 import { TaskRepository } from '@/service/task/cqrs/TaskRepository';
 import {
@@ -14,11 +13,8 @@ import {
   isCommandHandler,
   wrap,
 } from '@/service/task/cqrs/CommandHandler';
-import { register as registerMicrowaveFlow } from '@/service/task/cqrs/microwave/MicrowaveFlow';
-import { register as registerPresentationRequestFlow } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
-import { register as registerPresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
-import { register as registerCredentialRequestFlow } from '@/service/task/cqrs/subject/CredentialRequestFlow';
-import { register as registerRequestInputFlow } from '@/service/task/cqrs/requestInput/RequestInput';
+import { inject, injectable } from 'inversify';
+import { TYPES } from '@/wire/type';
 
 export interface TaskMaster {
   dispatch<CT extends string, C extends Command<CT>>(
@@ -47,6 +43,8 @@ export interface TaskMaster {
   ): Promise<TaskEvent<T, S>>;
 
   tasks: TaskContext<any>[];
+
+  rehydrate(): Promise<void>;
 }
 
 export interface TaskContext<S> {
@@ -61,31 +59,15 @@ export interface TaskContext<S> {
   task: Task<S>;
 }
 
+@injectable()
 export class DefaultTaskMaster implements TaskMaster {
-  private readonly commandDispatcher: CommandDispatcher;
-  private readonly taskRepository: TaskRepository;
-  private readonly eventBus: EventBus;
-
-  constructor(private context: Context) {
-    this.taskRepository = new TaskRepository(this.context.storage);
-    this.commandDispatcher = new CommandDispatcher(this.taskRepository);
-    this.eventBus = new EventBus(this.taskRepository);
-
-    // TODO perhaps move this to a module
-    // Register flows
-
-    // TODO Temp - DI library needed
-    const populatedContext = { ...context, taskMaster: this };
-    registerMicrowaveFlow(populatedContext);
-    registerPresentationRequestFlow(populatedContext);
-    registerPresentationFlow(populatedContext);
-    registerCredentialRequestFlow(populatedContext);
-    registerRequestInputFlow(populatedContext);
-  }
-
-  registerFlows(flowRegister: (context: Context) => void) {
-    flowRegister(this.context);
-  }
+  constructor(
+    @inject(TYPES.TaskRepository)
+    private readonly taskRepository: TaskRepository,
+    @inject(TYPES.CommandDispatcher)
+    private readonly commandDispatcher: CommandDispatcher,
+    @inject(TYPES.EventBus) private readonly eventBus: EventBus
+  ) {}
 
   static DefaultTaskContext = class<S> implements TaskContext<S> {
     constructor(
@@ -121,14 +103,10 @@ export class DefaultTaskMaster implements TaskMaster {
     }
   };
 
-  static async rehydrate(context: Context): Promise<TaskMaster> {
-    const taskMaster = new DefaultTaskMaster(context);
+  async rehydrate(): Promise<void> {
+    await this.taskRepository.rehydrate();
 
-    await taskMaster.taskRepository.rehydrate();
-
-    taskMaster.tasks.map((t) => t.dispatch(CommandType.Rehydrate, {}));
-
-    return taskMaster;
+    this.tasks.map((t) => t.dispatch(CommandType.Rehydrate, {}));
   }
 
   dispatch<CT extends string, C extends Command<CT>>(type: CT, command: C) {
@@ -144,9 +122,10 @@ export class DefaultTaskMaster implements TaskMaster {
     handler: CommandHandler<CT, C, S>,
     overwrite: boolean = false
   ) {
+    console.log('Registering command handler for type ' + commandType);
     const commandHandler = isCommandHandler(handler) ? handler : wrap(handler);
 
-    commandHandler.eventBus = this.eventBus; // TODO add IoC library or refactor
+    commandHandler.eventBus = this.eventBus; // TODO add to inversify container
     return this.commandDispatcher.registerCommandHandler(
       commandType,
       commandHandler,

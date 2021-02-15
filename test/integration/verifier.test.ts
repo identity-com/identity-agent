@@ -65,7 +65,7 @@ describe('PresentationRequestFlow flows', () => {
       ) => {
         receivedPresentationRepository.push(event.payload.response!);
       };
-      verifier.context.taskMaster.registerEventHandler(
+      verifier.taskMaster.registerEventHandler(
         EventType.PresentationReceived,
         handler
       );

@@ -1,8 +1,28 @@
 import { CommandHandler } from '@/service/task/cqrs/CommandHandler';
 import { Command } from '@/service/task/cqrs/Command';
 import { TaskRepository } from '@/service/task/cqrs/TaskRepository';
+import { inject, injectable } from 'inversify';
+import { TYPES } from '@/wire/type';
 
-export class CommandDispatcher {
+export interface CommandDispatcher {
+  registerCommandHandler<
+    S, // Task state
+    C extends Command<CT>, // command type
+    CT extends string // command name string
+  >(
+    commandType: CT,
+    handler: CommandHandler<CT, C, S>,
+    overwrite: boolean
+  ): void;
+
+  execute<C extends Command<CT>, CT extends string>(
+    type: CT,
+    command: C
+  ): Promise<void>;
+}
+
+@injectable()
+export class DefaultCommandDispatcher implements CommandDispatcher {
   private handlers: {
     // "key" is not recognised by eslint as a key identifier
     // eslint-disable-next-line no-undef
@@ -10,7 +30,7 @@ export class CommandDispatcher {
   };
   private taskRepository: TaskRepository;
 
-  constructor(taskRepository: TaskRepository) {
+  constructor(@inject(TYPES.TaskRepository) taskRepository: TaskRepository) {
     this.taskRepository = taskRepository;
     this.handlers = {};
   }

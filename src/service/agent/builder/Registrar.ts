@@ -3,7 +3,7 @@ import {
   AsymmetricKeyInput,
 } from '@/service/crypto/CryptoModule';
 import nacl from 'tweetnacl';
-import { Context } from '@/api/Agent';
+import { Config } from '@/api/Agent';
 import {
   generateEncryptKey,
   generateSignKey,
@@ -16,10 +16,10 @@ import { DeepPartial } from '@/lib/util';
 export class Registrar {
   signingKey?: AsymmetricKey;
   encryptionKey?: nacl.BoxKeyPair;
-  context: DeepPartial<Context>;
+  config: DeepPartial<Config>;
 
-  constructor(context: DeepPartial<Context> = {}) {
-    this.context = context;
+  constructor(config: DeepPartial<Config> = {}) {
+    this.config = config;
   }
 
   withKeys(
@@ -41,12 +41,12 @@ export class Registrar {
     if (!this.signingKey) this.generateKeys();
 
     if (this.signingKey && this.encryptionKey) {
-      const registry = new Registry(this.context.config || {});
+      const registry = new Registry(this.config || {});
       const did = await registry.registerForKeys(
         this.signingKey,
         this.encryptionKey
       );
-      const builder = new Builder(did, this.context);
+      const builder = new Builder(did, this.config);
       return builder.withKeys(this.signingKey, this.encryptionKey).build();
     } else throw new Error('Missing keys');
   }

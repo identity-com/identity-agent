@@ -61,17 +61,14 @@ describe('Simple Agent flows', () => {
       jest.setTimeout(5000);
       agent.startSlowTask(2000);
 
-      await agent.context.taskMaster.waitForEvent(EventType.Done);
+      await agent.taskMaster.waitForEvent(EventType.Done);
     });
 
     it('can run a simple task - wait by ID', async () => {
       jest.setTimeout(5000);
       const taskContext = await agent.startSlowTask(2000);
 
-      await agent.context.taskMaster.waitForEvent(
-        EventType.Done,
-        taskContext.id
-      );
+      await agent.taskMaster.waitForEvent(EventType.Done, taskContext.id);
     });
 
     it('can resume a task', async () => {

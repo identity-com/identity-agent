@@ -3,6 +3,7 @@ import {
   CredentialRequest,
   Credential,
 } from '@/service/task/cqrs/subject/CredentialRequestFlow';
+import { injectable } from 'inversify';
 
 export interface IssuerProxy<C extends Credential> {
   requestCredential(request: CredentialRequest): Promise<C>;
@@ -12,6 +13,7 @@ export type StubClaim = string;
 export interface StubCredential extends Credential {
   claims: Record<string, StubClaim>;
 }
+@injectable()
 export class StubIssuerProxy implements IssuerProxy<StubCredential> {
   requestCredential({
     issuer,

@@ -6,6 +6,7 @@ import {
 } from '@/service/transport/http/Http';
 import fetch, { Headers as NodeFetchHeaders } from 'node-fetch';
 import { filterOutMissingProps, safeParseJSON } from '@/lib/util';
+import { injectable } from 'inversify';
 
 /**
  * A browser-friendly iterator over headers
@@ -47,6 +48,7 @@ const http = async (
   };
 };
 
+@injectable()
 export class DefaultHttp implements Http {
   delete(
     url: string,

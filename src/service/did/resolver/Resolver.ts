@@ -6,10 +6,13 @@ import {
   ParsedDID,
   WrappedResolver,
 } from 'did-resolver';
-import { DID, DIDResolver } from '@/api/DID';
+import { DID } from '@/api/DID';
 import { AgentStorage } from '@/service/storage/AgentStorage';
 import { Config } from '@/api/Agent';
 import { Registry } from '@/service/did/resolver/Registry';
+import { bind } from '@/wire/util';
+import { TYPES } from '@/wire/type';
+import { Container } from 'inversify';
 
 export const STORAGE_FOLDER = 'dids';
 
@@ -31,13 +34,19 @@ const wrapStorage = (storage: AgentStorage): DIDCache => async (
   return doc;
 };
 
-export const defaultDIDResolver = (
-  config: Config,
-  storage?: AgentStorage
-): DIDResolver => {
+export const buildDIDResolver = (config: Config, storage?: AgentStorage) => {
   const cache = storage ? wrapStorage(storage) : inMemoryCache();
   const registry = makeRegistry(config);
 
   const resolver = new Resolver(registry, cache);
   return (did: DID) => resolver.resolve(did);
+};
+
+export const wireDIDResolverFactory = (
+  config: Config,
+  container: Container
+) => {
+  return bind(container, (storage) => buildDIDResolver(config, storage), [
+    TYPES.AgentStorage,
+  ]);
 };

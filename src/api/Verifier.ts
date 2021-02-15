@@ -1,4 +1,4 @@
-import { Agent, DefaultAgent } from './internal';
+import { DefaultAgent, Agent } from './internal';
 import { DID } from '@/api/DID';
 import { TaskContext } from '@/service/task/TaskMaster';
 import { Sparse } from '@/service/task/cqrs/Command';
@@ -9,16 +9,23 @@ import {
   RequestPresentationCommand,
 } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
 
-export class Verifier extends DefaultAgent {
-  constructor(private me: Agent) {
-    super(me.document, me.context);
+export interface Verifier extends Agent {
+  requestPresentation<S extends PresentationRequestState>(
+    subject: DID,
+    request: PresentationRequest
+  ): TaskContext<S>;
+}
+
+export class DefaultVerifier extends DefaultAgent implements Verifier {
+  constructor(private me: DefaultAgent) {
+    super(me.document, me.container);
   }
 
   requestPresentation<S extends PresentationRequestState>(
     subject: DID,
     request: PresentationRequest
   ): TaskContext<S> {
-    const taskContext: TaskContext<S> = this.me.context.taskMaster.registerTask();
+    const taskContext: TaskContext<S> = this.me.taskMaster.registerTask();
 
     const command: Sparse<RequestPresentationCommand> = {
       subject,

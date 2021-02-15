@@ -22,7 +22,7 @@ describe('transport', () => {
     it('should throw an error', async () => {
       // remove the services from the recipient DID
       recipient.document.service = [];
-      await sender.context.storage.put(
+      await sender.storage.put(
         [STORAGE_FOLDER, recipient.did],
         recipient.document
       );

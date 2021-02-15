@@ -19,6 +19,7 @@ import {
   Callback,
   create,
 } from '../../src/service/task/cqrs/requestInput/RequestInput';
+import { TYPES } from '../../src/wire/type';
 
 const verifierDID = 'did:dummy:receiver';
 
@@ -50,9 +51,8 @@ describe('PresentationFlow flows', () => {
   const presentation = { answer: 'It is Arthur, King of the Britons' };
 
   beforeEach(async () => {
-    const agent = await Agent.for(did, {
-      credential: { presenter: new StubPresenter(presentation) },
-    })
+    const agent = await Agent.for(did)
+      .with(TYPES.Presenter, new StubPresenter(presentation))
       .withKeys(dummyXprv, nacl.box.keyPair())
       .build();
     subject = agent.asSubject();
@@ -70,7 +70,7 @@ describe('PresentationFlow flows', () => {
   });
 
   it('can resolve a presentation request with a confirmation handler', async () => {
-    subject.context.taskMaster.registerCommandHandler(
+    subject.taskMaster.registerCommandHandler(
       CommandType.Confirm,
       new RejectIfVerifierIsNotRecognisedHandler(),
       true
@@ -99,25 +99,25 @@ describe('PresentationFlow flows', () => {
 
     beforeEach(() => {
       const requestInputTaskGenerator = create(
-        subject.context.taskMaster,
+        subject.taskMaster,
         (parentTaskId, value: string) => {
           const command: ConfirmCommand & { value: string } = {
             taskId: parentTaskId,
             value,
           };
-          subject.context.taskMaster.dispatch(CommandType.Confirm, command);
+          subject.taskMaster.dispatch(CommandType.Confirm, command);
         },
         (parentTaskId, rejectionReason: string | Error) => {
           const command: RejectCommand = {
             taskId: parentTaskId,
             rejectionReason,
           };
-          subject.context.taskMaster.dispatch(CommandType.Reject, command);
+          subject.taskMaster.dispatch(CommandType.Reject, command);
         }
       );
 
       // Override the default confirm event to provide an input value
-      subject.context.taskMaster.registerCommandHandler(
+      subject.taskMaster.registerCommandHandler(
         CommandType.Confirm,
         async (command: ConfirmCommand & { value: string }, task, emitter) => {
           emitter.emit(EventType.Confirmed, { value: command.value }, task);
@@ -126,7 +126,7 @@ describe('PresentationFlow flows', () => {
       );
 
       // Register an event that generates the callback when the presentation is resolved
-      subject.context.taskMaster.registerEventHandler(
+      subject.taskMaster.registerEventHandler(
         EventType.Resolved,
         (_event, task) => {
           callback[task.id] = requestInputTaskGenerator(task.id);

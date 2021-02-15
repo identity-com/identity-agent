@@ -9,16 +9,23 @@ import {
 } from '@/service/task/cqrs/subject/PresentationFlow';
 import { PresentationRequest } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
 
-export class Subject extends DefaultAgent {
-  constructor(private me: Agent) {
-    super(me.document, me.context);
+export interface Subject extends Agent {
+  resolvePresentationRequest<S extends PresentationState>(
+    request: PresentationRequest,
+    verifier: DID
+  ): TaskContext<S>;
+}
+
+export class DefaultSubject extends DefaultAgent implements Subject {
+  constructor(private me: DefaultAgent) {
+    super(me.document, me.container);
   }
 
   resolvePresentationRequest<S extends PresentationState>(
     request: PresentationRequest,
     verifier: DID
   ): TaskContext<S> {
-    const taskContext: TaskContext<S> = this.me.context.taskMaster.registerTask();
+    const taskContext: TaskContext<S> = this.me.taskMaster.registerTask();
 
     const command: Sparse<RequestPresentationCommand> = {
       verifier,

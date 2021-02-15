@@ -9,17 +9,20 @@ import { Http } from '@/service/transport/http/Http';
 import { serviceFor } from '@/lib/did/serviceUtils';
 import { isDID } from '@/lib/did/utils';
 import { CryptoModule } from '@/service/crypto/CryptoModule';
+import { inject, injectable } from 'inversify';
+import { TYPES } from '@/wire/type';
 
 const defaultTransportOptions: TransportOptions = {
   encrypted: true,
   signed: true,
 };
 
+@injectable()
 export class HttpTransport implements Transport {
   constructor(
-    private http: Http,
-    private resolve: DIDResolver,
-    private crypto: CryptoModule
+    @inject(TYPES.Http) private http: Http,
+    @inject(TYPES.DIDResolver) private resolve: DIDResolver,
+    @inject(TYPES.CryptoModule) private crypto: CryptoModule
   ) {}
 
   private async makeHttpBody(

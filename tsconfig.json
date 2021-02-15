@@ -4,6 +4,8 @@
     "target": "ES2017",
     "module": "esnext",
     "lib": ["dom", "esnext"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,

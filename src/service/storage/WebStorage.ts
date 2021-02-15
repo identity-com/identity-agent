@@ -7,6 +7,7 @@ import {
 } from '@/service/storage/AgentStorage';
 import { LocalStorage } from 'node-localstorage';
 import { complement, isNil, range } from 'ramda';
+import { injectable } from 'inversify';
 
 const DELIMITER = ':';
 
@@ -15,6 +16,7 @@ const concatenateKey = (key: StorageKey): string =>
 const unconcatenateKey = (concatenatedKey: string): StorageKey =>
   concatenatedKey.split(DELIMITER).map(decodeURIComponent);
 
+@injectable()
 export class WebStorage implements AgentStorage {
   private localStorage: Storage;
 

@@ -1,3 +1,4 @@
+require('reflect-metadata');
 const fs = require('fs');
 const path = require('path');
 

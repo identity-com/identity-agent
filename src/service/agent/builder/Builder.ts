@@ -1,47 +1,41 @@
 import { DID, DIDResolver } from '@/api/DID';
-import { Agent, Context } from '@/api/Agent';
+import { Agent, Config } from '@/api/Agent';
 import {
   AsymmetricKey,
   AsymmetricKeyInput,
   CryptoModule,
 } from '@/service/crypto/CryptoModule';
 import nacl from 'tweetnacl';
-import { mergeDeepLeft } from 'ramda';
 import { normalizePrivateKey } from '@/lib/crypto/utils';
-import { WebStorage } from '@/service/storage/WebStorage';
-import { defaultDIDResolver } from '@/service/did/resolver/Resolver';
+import { wireDIDResolverFactory } from '@/service/did/resolver/Resolver';
 import { PrivateKeyCrypto } from '@/service/crypto/PrivateKeyCrypto';
 import { DefaultCryptoModule } from '@/service/crypto/DefaultCryptoModule';
-import { DefaultTaskMaster } from '@/service/task/TaskMaster';
+import { TaskMaster } from '@/service/task/TaskMaster';
 import { DefaultAgent } from '@/api/internal';
-import { DefaultHttp } from '@/service/transport/http/DefaultHttp';
-import { HttpTransport } from '@/service/transport/HttpTransport';
-import { StubPresenter } from '@/service/credential/Presenter';
-import { StubPresentationVerification } from '@/service/credential/PresentationVerification';
-import { StubIssuerProxy } from '@/service/credential/IssuerProxy';
-import { AgentStorage } from '@/service/storage/AgentStorage';
 import { DeepPartial } from '@/lib/util';
+import { DIDDocument } from 'did-resolver';
+import { wire } from '@/wire/wire';
+import { TYPES } from '@/wire/type';
+import { register as registerMicrowaveFlow } from '@/service/task/cqrs/microwave/MicrowaveFlow';
+import { register as registerPresentationRequestFlow } from '@/service/task/cqrs/verifier/PresentationRequestFlow';
+import { register as registerPresentationFlow } from '@/service/task/cqrs/subject/PresentationFlow';
+import { register as registerCredentialRequestFlow } from '@/service/task/cqrs/subject/CredentialRequestFlow';
+import { register as registerRequestInputFlow } from '@/service/task/cqrs/requestInput/RequestInput';
+
+import { Container } from 'inversify';
 
 export class Builder {
   did: DID;
-  context: DeepPartial<Context>;
+  config: DeepPartial<Config>;
   signingKey?: AsymmetricKey;
   encryptionKey?: nacl.BoxKeyPair;
 
-  constructor(did: DID, context: DeepPartial<Context> = {}) {
+  container: Container;
+
+  constructor(did: DID, config: DeepPartial<Config> = {}) {
     this.did = did;
-    this.context = context;
-
-    if (!this.context.config) {
-      this.context.config = {};
-    }
-  }
-
-  mergeContext(newProperties: DeepPartial<Context>) {
-    this.context = mergeDeepLeft(
-      this.context,
-      newProperties
-    ) as DeepPartial<Context>;
+    this.config = config;
+    this.container = new Container();
   }
 
   withKeys(
@@ -53,61 +47,67 @@ export class Builder {
     return this;
   }
 
-  private async configure() {
-    this.context.storage = this.context.storage || new WebStorage();
-    this.context.didResolver =
-      this.context.didResolver ||
-      defaultDIDResolver(
-        this.context.config || {},
-        this.context.storage as AgentStorage
-      );
+  with<T>(type: symbol, component: T): this {
+    this.container
+      .bind<T>(type)
+      .toConstantValue(component)
+      .whenTargetIsDefault();
+    return this;
+  }
 
-    if (!this.context.crypto) {
-      if (this.signingKey && this.encryptionKey) {
-        this.context.crypto = new PrivateKeyCrypto(
-          this.did,
-          this.signingKey,
-          this.encryptionKey,
-          this.context.didResolver as DIDResolver
-        );
-      } else {
-        this.context.crypto = new DefaultCryptoModule(
-          this.did,
-          this.context.didResolver as DIDResolver
-        );
-      }
+  withType<T>(type: symbol, constructor: new (...args: any[]) => T): this {
+    this.container.bind<T>(type).to(constructor).whenTargetIsDefault();
+    return this;
+  }
+
+  private configure() {
+    wire(this.container);
+
+    const didResolverFactory = wireDIDResolverFactory(
+      this.config,
+      this.container
+    );
+    this.container
+      .bind<DIDResolver>(TYPES.DIDResolver)
+      .toProvider<DIDDocument>(didResolverFactory);
+
+    const didResolver = this.container.get<DIDResolver>(TYPES.DIDResolver);
+
+    let cryptoModule;
+    if (this.signingKey && this.encryptionKey) {
+      cryptoModule = new PrivateKeyCrypto(
+        this.did,
+        this.signingKey,
+        this.encryptionKey,
+        didResolver
+      );
+    } else {
+      cryptoModule = new DefaultCryptoModule(this.did, didResolver);
     }
-
-    this.context.credential = this.context.credential || {};
-    this.context.credential.presenter =
-      this.context.credential.presenter || new StubPresenter({});
-    this.context.credential.presentationVerification =
-      this.context.credential.presentationVerification ||
-      new StubPresentationVerification();
-    this.context.credential.issuerProxy =
-      this.context.credential.issuerProxy || new StubIssuerProxy();
-
-    this.context.transport =
-      this.context.transport ||
-      new HttpTransport(
-        new DefaultHttp(),
-        this.context.didResolver as DIDResolver,
-        this.context.crypto as CryptoModule
-      );
-
-    this.context.taskMaster =
-      this.context.taskMaster ||
-      (await DefaultTaskMaster.rehydrate(this.context as Context));
+    this.container
+      .bind<CryptoModule>(TYPES.CryptoModule)
+      .toConstantValue(cryptoModule);
   }
 
   async build(): Promise<Agent> {
-    await this.configure();
+    this.configure();
 
-    if (!this.context.didResolver)
-      throw Error('An agent must include a DID resolver');
+    const taskMaster = this.container.get<TaskMaster>(TYPES.TaskMaster);
 
-    const document = await (this.context as Context).didResolver(this.did);
+    // TODO perhaps move this to a module
+    // Register flows
+    registerMicrowaveFlow(this.container);
+    registerPresentationRequestFlow(this.container);
+    registerPresentationFlow(this.container);
+    registerCredentialRequestFlow(this.container);
+    registerRequestInputFlow(this.container);
 
-    return new DefaultAgent(document, this.context as Context);
+    await taskMaster.rehydrate();
+
+    const didResolver = this.container.get<DIDResolver>(TYPES.DIDResolver);
+
+    const document = await didResolver(this.did);
+
+    return new DefaultAgent(document, this.container);
   }
 }

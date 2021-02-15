@@ -2,7 +2,9 @@ import { TaskMaster } from '@/service/task/TaskMaster';
 import { Command } from '@/service/task/cqrs/Command';
 import { TaskEvent } from '@/service/task/cqrs/TaskEvent';
 import { Task } from '@/service/task/cqrs/Task';
-import { Context } from '@/api/Agent';
+import { bind } from '@/wire/util';
+import { TYPES } from '@/wire/type';
+import { Container } from 'inversify';
 
 type State = {
   parentTaskId: string;
@@ -37,36 +39,41 @@ interface RejectCommand extends Command<CommandType.Reject> {
   reason: string;
 }
 
-export const register = (context: Context) => {
-  context.taskMaster.registerCommandHandler(
-    CommandType.Create,
-    async (command: CreateCommand, task, emitter) => {
-      emitter.emit(
-        EventType.Requested,
-        { parentTaskId: command.parentTaskId },
-        task
+export const register = (container: Container) =>
+  bind(
+    container,
+    (taskMaster: TaskMaster) => {
+      taskMaster.registerCommandHandler(
+        CommandType.Create,
+        async (command: CreateCommand, task, emitter) => {
+          emitter.emit(
+            EventType.Requested,
+            { parentTaskId: command.parentTaskId },
+            task
+          );
+        }
       );
-    }
-  );
 
-  context.taskMaster.registerCommandHandler(
-    CommandType.Complete,
-    async (command: CompleteCommand, task, emitter) => {
-      emitter.emit(EventType.Received, { value: command.value }, task);
-    }
-  );
-
-  context.taskMaster.registerCommandHandler(
-    CommandType.Reject,
-    async (command: RejectCommand, task, emitter) => {
-      emitter.emit(
-        EventType.Rejected,
-        { rejectionReason: command.reason },
-        task
+      taskMaster.registerCommandHandler(
+        CommandType.Complete,
+        async (command: CompleteCommand, task, emitter) => {
+          emitter.emit(EventType.Received, { value: command.value }, task);
+        }
       );
-    }
-  );
-};
+
+      taskMaster.registerCommandHandler(
+        CommandType.Reject,
+        async (command: RejectCommand, task, emitter) => {
+          emitter.emit(
+            EventType.Rejected,
+            { rejectionReason: command.reason },
+            task
+          );
+        }
+      );
+    },
+    [TYPES.TaskMaster]
+  )();
 
 export const create = <T>(
   taskMaster: TaskMaster,

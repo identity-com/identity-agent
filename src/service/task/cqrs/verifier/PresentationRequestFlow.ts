@@ -4,9 +4,12 @@ import { Task } from '@/service/task/cqrs/Task';
 import { Command } from '@/service/task/cqrs/Command';
 import { CommandHandler } from '@/service/task/cqrs/CommandHandler';
 import { PresentationVerification } from '@/service/credential/PresentationVerification';
-import { Context } from '@/api/Agent';
 import { EventType as CommonEventType } from '@/service/task/cqrs/TaskEvent';
 import { Presentation } from '@/service/task/cqrs/subject/PresentationFlow';
+import { bind } from '@/wire/util';
+import { TaskMaster } from '@/service/task/TaskMaster';
+import { TYPES } from '@/wire/type';
+import { Container } from 'inversify';
 
 export type PresentationRequest = {};
 
@@ -103,16 +106,23 @@ export class ProcessPresentationResponseCommandHandler extends CommandHandler<
   }
 }
 
-export const register = (context: Context) => {
-  context.taskMaster.registerCommandHandler(
-    CommandType.Request,
-    new RequestPresentationCommandHandler(context.transport)
-  );
+export const register = (container: Container) =>
+  bind(
+    container,
+    (
+      taskMaster: TaskMaster,
+      transport: Transport,
+      presentationVerification: PresentationVerification
+    ) => {
+      taskMaster.registerCommandHandler(
+        CommandType.Request,
+        new RequestPresentationCommandHandler(transport)
+      );
 
-  context.taskMaster.registerCommandHandler(
-    CommandType.ProcessResponse,
-    new ProcessPresentationResponseCommandHandler(
-      context.credential.presentationVerification
-    )
-  );
-};
+      taskMaster.registerCommandHandler(
+        CommandType.ProcessResponse,
+        new ProcessPresentationResponseCommandHandler(presentationVerification)
+      );
+    },
+    [TYPES.TaskMaster, TYPES.Transport, TYPES.PresentationVerification]
+  )();

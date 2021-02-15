@@ -7,7 +7,10 @@ import {
 import { CommandHandler } from '@/service/task/cqrs/CommandHandler';
 import { Task } from '@/service/task/cqrs/Task';
 import { EventHandler } from '@/service/task/cqrs/EventHandler';
-import { Context } from '@/api/Agent';
+import { TaskMaster } from '@/service/task/TaskMaster';
+import { bind } from '@/wire/util';
+import { TYPES } from '@/wire/type';
+import { Container } from 'inversify';
 
 const whirr = (durationMS: number) =>
   new Promise((resolve) => setTimeout(resolve, durationMS));
@@ -65,20 +68,22 @@ export class DoneEventHandler implements Handler<EventType.Done> {
   }
 }
 
-export const register = (context: Context) => {
-  context.taskMaster.registerCommandHandler(
-    CommandType.StartCooking,
-    new StartCookingCommandHandler()
-  );
+export const register = (container: Container) =>
+  bind(
+    container,
+    (taskMaster: TaskMaster) => {
+      taskMaster.registerCommandHandler(
+        CommandType.StartCooking,
+        new StartCookingCommandHandler()
+      );
 
-  context.taskMaster.registerCommandHandler(
-    CommonCommandType.Rehydrate,
-    new RehydrateCommandHandler()
-  );
+      taskMaster.registerCommandHandler(
+        CommonCommandType.Rehydrate,
+        new RehydrateCommandHandler()
+      );
 
-  // TODO add only to Microwave tasks
-  context.taskMaster.registerEventHandler(
-    EventType.Done,
-    new DoneEventHandler()
-  );
-};
+      // TODO add only to Microwave tasks
+      taskMaster.registerEventHandler(EventType.Done, new DoneEventHandler());
+    },
+    [TYPES.TaskMaster]
+  )();

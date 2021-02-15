@@ -2,12 +2,30 @@ import { AgentStorage, StorageKey } from '@/service/storage/AgentStorage';
 import { Task } from '@/service/task/cqrs/Task';
 import { propEq } from 'ramda';
 import { TaskEvent } from '@/service/task/cqrs/TaskEvent';
+import { inject, injectable } from 'inversify';
+import { TYPES } from '@/wire/type';
 
 const STORAGE_FOLDER = 'tasks';
-export class TaskRepository {
+
+export interface TaskRepository {
+  tasks: Task<any>[];
+  store(task: Task<any>): Promise<void>;
+  rehydrate(): Promise<void>;
+  add(task: Task<any>): void;
+  get<S>(id: string): Task<S> | undefined;
+  update<ET extends string, S>(
+    id: string,
+    event: TaskEvent<ET, S>
+  ): Promise<void>;
+}
+
+@injectable()
+export class DefaultTaskRepository implements TaskRepository {
   readonly tasks: Task<any>[];
 
-  constructor(private readonly storage: AgentStorage) {
+  constructor(
+    @inject(TYPES.AgentStorage) private readonly storage: AgentStorage
+  ) {
     this.tasks = [];
   }
 

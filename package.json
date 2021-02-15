@@ -35,6 +35,8 @@
   "module": "dist/identity-agent.esm.js",
   "devDependencies": {
     "@types/bs58": "^4.0.1",
+    "@types/jest": "^26.0.20",
+    "@types/node": "^14.14.25",
     "@types/node-fetch": "^2.5.8",
     "@types/node-localstorage": "^1.3.0",
     "@types/ramda": "^0.27.34",
@@ -59,16 +61,17 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.4.1",
-    "@types/node": "^14.14.25",
     "bitcoinjs-lib": "^5.2.0",
     "bs58": "^4.0.1",
     "did-jwt": "^4.8.1",
     "did-resolver": "^2.1.2",
+    "inversify": "^5.0.5",
     "is-promise": "^4.0.0",
     "node-fetch": "^2.6.1",
     "node-localstorage": "^2.1.6",
     "ramda": "^0.27.1",
     "readable-web-to-node-stream": "^3.0.1",
+    "reflect-metadata": "^0.1.13",
     "tweetnacl": "^1.0.3",
     "uuid": "^8.3.2"
   }

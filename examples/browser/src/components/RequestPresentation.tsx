@@ -15,7 +15,7 @@ export const RequestPresentation = ({ agent }: Props) => {
 
   const sendPresentationRequest = useCallback(
     () => {
-      const task = agent.asVerifier().requestPresentation(recipient as DID, JSON.parse(request))
+      const task = agent.asVerifier().requestPresentation(JSON.parse(request), recipient as DID)
       console.log("Created Task", task);
     },
     [recipient, request, agent]

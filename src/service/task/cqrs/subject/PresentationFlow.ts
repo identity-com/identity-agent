@@ -17,7 +17,7 @@ import { bind } from '@/wire/util';
 import { TYPES } from '@/wire/type';
 import { Container } from 'inversify';
 
-export type Presentation = {};
+export type Presentation = any;
 
 export type PresentationState = {
   verifier: DID;

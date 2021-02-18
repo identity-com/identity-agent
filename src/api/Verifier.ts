@@ -11,8 +11,8 @@ import {
 
 export interface Verifier extends Agent {
   requestPresentation<S extends PresentationRequestState>(
-    subject: DID,
-    request: PresentationRequest
+    request: PresentationRequest,
+    subject: DID
   ): TaskContext<S>;
 }
 
@@ -22,8 +22,8 @@ export class DefaultVerifier extends DefaultAgent implements Verifier {
   }
 
   requestPresentation<S extends PresentationRequestState>(
-    subject: DID,
-    request: PresentationRequest
+    request: PresentationRequest,
+    subject: DID
   ): TaskContext<S> {
     const taskContext: TaskContext<S> = this.me.taskMaster.registerTask();
 

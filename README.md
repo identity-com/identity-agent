@@ -1,10 +1,18 @@
 # Identity Agent
 
+The Identity Agent is a Self-Sovereign Identity agent based on [DIDs](https://www.w3.org/TR/did-core/Overview.html).
+
+The Agent is capable of communicating with other DID-based agents using end-to-end encryption,
+as well as requesting and resolving [Verifiable Credentials](https://www.w3.org/TR/vc-data-model).
+
+The Agent can be run via the command line, in the browser or on a remote server, and is
+designed to be extensible to support various use-cases and environments.
+
 ## Quick Start
 
 Install
 
-Identity-agent uses [nvm](https://github.com/nvm-sh/nvm) and [yarn](https://yarnpkg.com/)
+Identity-Agent uses [nvm](https://github.com/nvm-sh/nvm) and [yarn](https://yarnpkg.com/)
 ```shell
 nvm i
 yarn
@@ -16,7 +24,7 @@ Start a REPL like this:
 yarn repl
 ```
 
-Try the following commands:
+## Agent creation
 
 ### Register a DID
 ```js
@@ -24,14 +32,26 @@ createDID()
 ```
 
 ### Create a privileged agent
-Creating an agent with a private key ()
+Creating an agent with a private key
 ```js
-a = await Agent.for(Alice.did).withKey(Alice.key).build()
+a = await Agent.for(Alice.did).withKeys(Alice.signingKey, Alice.encryptionKey).build()
+
+// shorter version
+a = await Agent.for(Alice).build()
 ```
 
-### Create a privileged agent
+### Create a non-privileged agent
+Creating an agent with no private keys (e.g. a mediator or relay)
 ```js
 b = await Agent.for(Bob.did).build()
+```
+
+## Messages
+
+### Send a message via HTTP
+```js
+message = { hello: 'Bob' }
+await a.send(message, Bob.did)
 ```
 
 ### Sign a message
@@ -40,42 +60,34 @@ jwt = await a.sign({some: 'payload'})
 ```
 
 ### Verify a message
+
 ```js
 verifiedPayload = await b.verify(jwt)
 ```
 
-### Demo resolve a verifiable presentation
+## Subject operations
 
-Automated (i.e. with no interaction)
-```js
-task = a.asSubject().resolvePresentationRequest(dummyVerifiablePresentation)
-
-// stub out the credential being retrieved for the presentation
-demo.resolvePresentationRequestTaskWithDummyCredentials(task)
-
-await task.result()
-```
-
-
-With user interaction
+### Resolve a verifiable presentation
 
 ```js
-// a handler mimicing a user confirming the presentation 
-userAlwaysClicksOk = () => Promise.resolve()
+presentation = {} // dummy
 
-// create a task to resolve a verifiable presentation request
-dummyVerifiablePresentation = {};
-task = a.asSubject().resolvePresentationRequest(dummyVerifiablePresentation)
+taskContext = a.asSubject().resolvePresentationRequest(presentation, Bob.did)
 
-// inject our handler into the confirmation process 
-task.on(EventType.ConfirmPresentation, { handle: alwaysOK })
-
-// stub out the credential being retrieved for the presentation
-demo.resolvePresentationRequestTaskWithDummyCredentials(task)
-
-await task.result()
+await taskContext.waitForDone()
 ```
 
+## Verifier operations
+
+### Request a verifiable presentation
+
+```js
+request = {}
+
+taskContext = a.asVerifier().requestPresentation(request, Bob.did)
+
+await taskContext.waitForDone()
+```
 
 ## Running the example browser app
 

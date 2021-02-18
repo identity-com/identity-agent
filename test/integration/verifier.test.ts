@@ -32,8 +32,8 @@ describe('PresentationRequestFlow flows', () => {
 
     it('can request a presentation', async () => {
       const presentationTask = verifier.requestPresentation(
-        subjectDID,
-        presentationRequest
+        presentationRequest,
+        subjectDID
       );
 
       await presentationTask.waitForEvent(EventType.Requested);
@@ -72,7 +72,7 @@ describe('PresentationRequestFlow flows', () => {
 
       // create and resolve 5 presentationRequest 5 tasks
       const tasks = times(
-        () => verifier.requestPresentation(subjectDID, presentationRequest),
+        () => verifier.requestPresentation(presentationRequest, subjectDID),
         expectedTaskCount
       );
       await Promise.all(

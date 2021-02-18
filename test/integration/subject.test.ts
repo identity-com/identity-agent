@@ -6,7 +6,7 @@ import * as nacl from 'tweetnacl';
 import { Task } from '@/service/task/cqrs/Task';
 import { EventType as CommonEventType } from '@/service/task/cqrs/TaskEvent';
 import { StubPresenter } from '@/service/credential/Presenter';
-import { TaskContext } from '../../src/service/task/TaskMaster';
+import { TaskContext } from '@/service/task/TaskMaster';
 import {
   ConfirmCommand,
   ConfirmCommandHandler,
@@ -14,12 +14,14 @@ import {
   RejectCommand,
   EventType,
   CommandType,
-} from '../../src/service/task/cqrs/subject/PresentationFlow';
+} from '@/service/task/cqrs/subject/PresentationFlow';
 import {
   Callback,
   create,
-} from '../../src/service/task/cqrs/requestInput/RequestInput';
-import { TYPES } from '../../src/wire/type';
+} from '@/service/task/cqrs/requestInput/RequestInput';
+import { CommandHandler } from '@/service/task/cqrs/CommandHandler';
+import { TYPES } from '../../src';
+import { Command } from '../../src/service/task/cqrs/Command';
 
 const verifierDID = 'did:dummy:receiver';
 
@@ -69,6 +71,36 @@ describe('PresentationFlow flows', () => {
     expect(presentationTask.state.presentation).toEqual(presentation);
   });
 
+  it('can resolve a presentation request with a simple confirmation handler', async () => {
+    const addsATokenToTheConfirmationHandler = async <
+      CT extends string,
+      C extends Command<CT>
+    >(
+      _command: C,
+      task: Task<PresentationState>,
+      emitter: CommandHandler<CT, C, PresentationState>
+    ) => {
+      const token = await subject.sign({});
+      emitter.emit(EventType.Confirmed, { presentation: { token } }, task);
+      emitter.emit(CommonEventType.Done, {}, task);
+    };
+
+    subject.taskMaster.registerCommandHandler(
+      CommandType.Confirm,
+      addsATokenToTheConfirmationHandler,
+      true
+    );
+
+    const task = subject.resolvePresentationRequest(
+      presentationRequest,
+      verifierDID
+    );
+
+    await task.waitForDone();
+
+    await subject.verify(task.state.presentation.token);
+  });
+
   it('can resolve a presentation request with a confirmation handler', async () => {
     subject.taskMaster.registerCommandHandler(
       CommandType.Confirm,
@@ -95,7 +127,7 @@ describe('PresentationFlow flows', () => {
 
   describe('with a requestInput subtask', () => {
     const callback: Record<string, Callback<string>> = {};
-    type AugmentedPesentationState = PresentationState & { value: string };
+    type AugmentedPresentationState = PresentationState & { value: string };
 
     beforeEach(() => {
       const requestInputTaskGenerator = create(
@@ -136,7 +168,7 @@ describe('PresentationFlow flows', () => {
     });
 
     it('can resolve a presentation request with a confirmation handler that requests input', async () => {
-      const presentationTask: TaskContext<AugmentedPesentationState> = subject.resolvePresentationRequest(
+      const presentationTask: TaskContext<AugmentedPresentationState> = subject.resolvePresentationRequest(
         presentationRequest,
         verifierDID
       );
@@ -153,11 +185,11 @@ describe('PresentationFlow flows', () => {
     });
 
     it('can resolve or reject multiple presentation request with different requestInput subtasks', async () => {
-      const firstTask: TaskContext<AugmentedPesentationState> = subject.resolvePresentationRequest(
+      const firstTask: TaskContext<AugmentedPresentationState> = subject.resolvePresentationRequest(
         presentationRequest,
         verifierDID
       );
-      const secondTask: TaskContext<AugmentedPesentationState> = subject.resolvePresentationRequest(
+      const secondTask: TaskContext<AugmentedPresentationState> = subject.resolvePresentationRequest(
         presentationRequest,
         verifierDID
       );

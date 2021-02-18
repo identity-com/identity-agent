@@ -11,8 +11,13 @@ const payloadTypeToService: Record<PayloadType, string> = {
 export const serviceFor = (
   didDocument: DIDDocument,
   type: PayloadType
+): ServiceEndpoint | undefined =>
+  getService(didDocument, payloadTypeToService[type]);
+
+export const getService = (
+  didDocument: DIDDocument,
+  serviceType: string
 ): ServiceEndpoint | undefined => {
-  const serviceType = payloadTypeToService[type];
   const services = didDocument.service || [];
   return services.find(propEq('type', serviceType));
 };

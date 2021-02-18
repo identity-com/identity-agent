@@ -60,7 +60,7 @@ export class Builder {
     return this;
   }
 
-  private configure() {
+  private async configure() {
     wire(this.container);
 
     const didResolverFactory = wireDIDResolverFactory(
@@ -72,6 +72,11 @@ export class Builder {
       .toProvider<DIDDocument>(didResolverFactory);
 
     const didResolver = this.container.get<DIDResolver>(TYPES.DIDResolver);
+
+    const document = await didResolver(this.did);
+    this.container
+      .bind<DIDDocument>(TYPES.DIDDocument)
+      .toConstantValue(document);
 
     let cryptoModule;
     if (this.signingKey && this.encryptionKey) {
@@ -90,7 +95,7 @@ export class Builder {
   }
 
   async build(): Promise<Agent> {
-    this.configure();
+    await this.configure();
 
     const taskMaster = this.container.get<TaskMaster>(TYPES.TaskMaster);
 
@@ -104,10 +109,6 @@ export class Builder {
 
     await taskMaster.rehydrate();
 
-    const didResolver = this.container.get<DIDResolver>(TYPES.DIDResolver);
-
-    const document = await didResolver(this.did);
-
-    return new DefaultAgent(document, this.container);
+    return new DefaultAgent(this.container);
   }
 }

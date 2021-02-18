@@ -55,6 +55,7 @@ const App = () => {
   useEffect(() => {
     const registerAgent = async () => {
       const agent = await createAgent()
+      global.agent = agent;
       setAgent(agent)
     }
 

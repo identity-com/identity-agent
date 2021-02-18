@@ -1,4 +1,5 @@
 export const TYPES = {
+  DIDDocument: Symbol('DIDDocument'),
   AgentStorage: Symbol('AgentStorage'),
   DIDResolver: Symbol('DIDResolver'),
   CryptoModule: Symbol('CryptoModule'),

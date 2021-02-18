@@ -3,18 +3,32 @@ import {
   Transport,
   PayloadType,
   Response,
+  MessageOptions,
+  MessageResponse,
 } from '@/service/transport/Transport';
 import { DID, DIDResolver } from '@/api/DID';
-import { Http } from '@/service/transport/http/Http';
-import { serviceFor } from '@/lib/did/serviceUtils';
+import { Http, HttpResponse } from '@/service/transport/http/Http';
+import { getService, serviceFor } from '@/lib/did/serviceUtils';
 import { isDID } from '@/lib/did/utils';
 import { CryptoModule } from '@/service/crypto/CryptoModule';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '@/wire/type';
+import { DIDDocument } from 'did-resolver';
+import { JWE, JWTVerified } from 'did-jwt';
 
 const defaultTransportOptions: TransportOptions = {
   encrypted: true,
   signed: true,
+};
+
+const defaultHeaders = {
+  'content-type': 'application/json',
+};
+
+type MessageHttpResponse = HttpResponse & {
+  bodyJson: {
+    data: JWE[];
+  };
 };
 
 @injectable()
@@ -22,7 +36,8 @@ export class HttpTransport implements Transport {
   constructor(
     @inject(TYPES.Http) private http: Http,
     @inject(TYPES.DIDResolver) private resolve: DIDResolver,
-    @inject(TYPES.CryptoModule) private crypto: CryptoModule
+    @inject(TYPES.CryptoModule) private crypto: CryptoModule,
+    @inject(TYPES.DIDDocument) private document: DIDDocument
   ) {}
 
   private async makeHttpBody(
@@ -37,6 +52,18 @@ export class HttpTransport implements Transport {
           ? this.crypto.encrypt(body, recipient).then(JSON.stringify)
           : body
       );
+  }
+
+  private async makeAuthToken(): Promise<string> {
+    return this.crypto.createToken({});
+  }
+
+  private async headers() {
+    const token = await this.makeAuthToken();
+    return {
+      ...defaultHeaders,
+      Authorization: `Bearer ${token}`,
+    };
   }
 
   async send(
@@ -65,11 +92,42 @@ export class HttpTransport implements Transport {
     console.log(`Sending to ${recipient}`, payload);
 
     const body = await this.makeHttpBody(payload, recipient, options);
+    const headers = await this.headers();
 
     return this.http
-      .post(endpoint, body, {
-        'content-type': 'application/json',
-      })
+      .post(endpoint, body, headers)
       .then((response) => ({ status: 'ok', response }));
+  }
+
+  async getMessages(options: MessageOptions = {}): Promise<MessageResponse> {
+    const serviceName = 'MessagingService';
+    const service = getService(this.document, serviceName);
+    if (!service) throw Error(`Missing service ${serviceName}`);
+
+    const headers = await this.headers();
+
+    const response = await this.http.get<MessageHttpResponse>(
+      service.serviceEndpoint,
+      headers,
+      options
+    );
+
+    const encryptedMessages = response.bodyJson.data;
+
+    const decryptedMessages = await Promise.all(
+      encryptedMessages.map((encryptedMessage) =>
+        this.decryptMessage(encryptedMessage)
+      )
+    );
+
+    return {
+      status: 'ok',
+      messages: decryptedMessages,
+    };
+  }
+
+  private async decryptMessage(message: JWE): Promise<JWTVerified> {
+    const jwt = await this.crypto.decrypt(message);
+    return this.crypto.verifyToken(jwt);
   }
 }

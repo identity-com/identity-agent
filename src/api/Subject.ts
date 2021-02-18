@@ -18,7 +18,7 @@ export interface Subject extends Agent {
 
 export class DefaultSubject extends DefaultAgent implements Subject {
   constructor(private me: DefaultAgent) {
-    super(me.document, me.container);
+    super(me.container);
   }
 
   resolvePresentationRequest<S extends PresentationState>(

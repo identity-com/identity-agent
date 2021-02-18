@@ -11,43 +11,43 @@ export type HttpResponse = {
 export type HttpHeaders = Record<string, string | string[]>;
 
 export interface Http {
-  get(
+  get<R extends HttpResponse>(
     url: string,
     headers?: HttpHeaders,
     options?: Record<string, any>
-  ): Promise<HttpResponse>;
-  head(
+  ): Promise<R>;
+  head<R extends HttpResponse>(
     url: string,
     headers?: HttpHeaders,
     options?: Record<string, any>
-  ): Promise<HttpResponse>;
-  options(
+  ): Promise<R>;
+  options<R extends HttpResponse>(
     url: string,
     headers?: HttpHeaders,
     options?: Record<string, any>
-  ): Promise<HttpResponse>;
-  delete(
+  ): Promise<R>;
+  delete<R extends HttpResponse>(
     url: string,
     headers?: HttpHeaders,
     options?: Record<string, any>
-  ): Promise<HttpResponse>;
+  ): Promise<R>;
 
-  put(
+  put<R extends HttpResponse>(
     url: string,
     body: HttpPayload,
     headers?: HttpHeaders,
     options?: Record<string, any>
-  ): Promise<HttpResponse>;
-  patch(
+  ): Promise<R>;
+  patch<R extends HttpResponse>(
     url: string,
     body: HttpPayload,
     headers?: HttpHeaders,
     options?: Record<string, any>
-  ): Promise<HttpResponse>;
-  post(
+  ): Promise<R>;
+  post<R extends HttpResponse>(
     url: string,
     body: HttpPayload,
     headers?: HttpHeaders,
     options?: Record<string, any>
-  ): Promise<HttpResponse>;
+  ): Promise<R>;
 }

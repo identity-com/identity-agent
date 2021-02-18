@@ -30,10 +30,14 @@ const isIdentity = (identity: DID | Identity): identity is Identity =>
   Object.prototype.hasOwnProperty.call(identity, 'did');
 
 export class DefaultAgent implements Agent {
-  constructor(readonly document: DIDDocument, readonly container: Container) {}
+  constructor(readonly container: Container) {}
 
   get did(): DID {
     return this.document.id as DID;
+  }
+
+  get document(): DIDDocument {
+    return this.container.get<DIDDocument>(TYPES.DIDDocument);
   }
 
   resolve(did: DID): Promise<DIDDocument> {

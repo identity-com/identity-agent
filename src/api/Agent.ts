@@ -4,7 +4,7 @@ import { Subject, DefaultAgent, Verifier } from '@/api/internal';
 import { AsymmetricKey, JWT } from '@/service/crypto/CryptoModule';
 import { JWE, JWTVerified } from 'did-jwt';
 import { TaskContext, TaskMaster } from '@/service/task/TaskMaster';
-import { Response } from '@/service/transport/Transport';
+import { Response, Transport } from '@/service/transport/Transport';
 import nacl from 'tweetnacl';
 import { DeepPartial } from '@/lib/util';
 import { MicrowaveState } from '@/service/task/cqrs/microwave/MicrowaveFlow';
@@ -32,6 +32,7 @@ export abstract class Agent {
   abstract taskMaster: TaskMaster;
   abstract storage: AgentStorage;
   abstract tasks: TaskContext<any>[];
+  abstract transport: Transport;
 
   abstract resolve(did: DID): Promise<DIDDocument>;
 

@@ -1,8 +1,15 @@
 import { DID } from '@/api/DID';
+import { JWTVerified } from 'did-jwt';
 
 export type PayloadType = 'Presentation' | 'PresentationRequest' | 'Message';
 export type Response = {
   status: 'ok'; // TODO
+};
+
+export type MessageResponse = Response & { messages: JWTVerified[] };
+
+export type MessageOptions = {
+  since?: Date;
 };
 
 export type TransportOptions = {
@@ -17,4 +24,6 @@ export interface Transport {
     type: PayloadType,
     options?: TransportOptions
   ): Promise<Response>;
+
+  getMessages(options?: MessageOptions): Promise<MessageResponse>;
 }

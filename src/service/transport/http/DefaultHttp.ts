@@ -20,13 +20,13 @@ const getHeaders = (headers: Headers | NodeFetchHeaders): HttpHeaders => {
   return headerObj;
 };
 
-const http = async (
+const http = async <R extends HttpResponse>(
   url: string,
   method: string,
   body: string | undefined,
   headers: HttpHeaders,
   options: Record<string, any>
-): Promise<HttpResponse> => {
+): Promise<R> => {
   const response = await fetch(
     url,
     filterOutMissingProps({
@@ -40,72 +40,77 @@ const http = async (
   const responseText = await response.text();
   const responseJson = await safeParseJSON(responseText);
 
-  return {
+  const parsedResponse = {
     status: response.status,
     body: responseText,
     bodyJson: responseJson,
     headers: getHeaders(response.headers),
-  };
+  } as R;
+
+  if (parsedResponse.status >= 400)
+    throw new Error(`HTTPError: ${responseText}`);
+
+  return parsedResponse;
 };
 
 @injectable()
 export class DefaultHttp implements Http {
-  delete(
+  delete<R extends HttpResponse>(
     url: string,
     headers: HttpHeaders,
     options: Record<string, any>
-  ): Promise<HttpResponse> {
-    return http(url, 'delete', undefined, headers, options);
+  ): Promise<R> {
+    return http<R>(url, 'delete', undefined, headers, options);
   }
 
-  get(
+  get<R extends HttpResponse>(
     url: string,
     headers: HttpHeaders,
     options: Record<string, any>
-  ): Promise<HttpResponse> {
-    return http(url, 'get', undefined, headers, options);
+  ): Promise<R> {
+    return http<R>(url, 'get', undefined, headers, options);
   }
 
-  head(
+  head<R extends HttpResponse>(
     url: string,
     headers: HttpHeaders,
     options: Record<string, any>
-  ): Promise<HttpResponse> {
-    return http(url, 'head', undefined, headers, options);
+  ): Promise<R> {
+    return http<R>(url, 'head', undefined, headers, options);
   }
 
-  options(
+  options<R extends HttpResponse>(
     url: string,
     headers: HttpHeaders,
     options: Record<string, any>
-  ): Promise<HttpResponse> {
-    return http(url, 'options', undefined, headers, options);
+  ): Promise<R> {
+    return http<R>(url, 'options', undefined, headers, options);
   }
 
-  patch(
+  patch<R extends HttpResponse>(
     url: string,
     body: HttpPayload,
     headers: HttpHeaders,
     options: Record<string, any>
-  ): Promise<HttpResponse> {
-    return http(url, 'patch', body, headers, options);
+  ): Promise<R> {
+    return http<R>(url, 'patch', body, headers, options);
   }
 
-  post(
+  post<R extends HttpResponse>(
     url: string,
     body: HttpPayload,
     headers: HttpHeaders,
     options: Record<string, any>
-  ): Promise<HttpResponse> {
-    return http(url, 'post', body, headers, options);
+  ): Promise<R> {
+    return http<R>(url, 'post', body, headers, options);
   }
 
-  put(
+  put<R extends HttpResponse>(
     url: string,
     body: HttpPayload,
     headers: HttpHeaders,
     options: Record<string, any>
-  ): Promise<HttpResponse> {
-    return http(url, 'put', body, headers, options);
+  ): Promise<R> {
+    return http<R>(url, 'put', body, headers, options);
   }
 }

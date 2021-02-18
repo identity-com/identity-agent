@@ -18,7 +18,7 @@ export interface Verifier extends Agent {
 
 export class DefaultVerifier extends DefaultAgent implements Verifier {
   constructor(private me: DefaultAgent) {
-    super(me.document, me.container);
+    super(me.container);
   }
 
   requestPresentation<S extends PresentationRequestState>(

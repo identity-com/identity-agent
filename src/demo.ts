@@ -7,7 +7,7 @@ import Debug from 'debug';
 
 const debug = Debug('ia:demo');
 
-const createDID = async (): Promise<Identity> => {
+const createIdentity = async (): Promise<Identity> => {
   const signingKey = generateSignKey();
   const encryptionKey = generateEncryptKey();
   const agent = await Agent.register()
@@ -59,4 +59,4 @@ const getMessages = (agent: Agent): Promise<JWTVerified[]> => {
   return agent.transport.getMessages().then(prop('messages'));
 };
 
-export { createDID, processNewMessages };
+export { createIdentity, processNewMessages };

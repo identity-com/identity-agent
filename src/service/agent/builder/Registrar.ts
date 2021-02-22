@@ -9,7 +9,7 @@ import {
   generateSignKey,
   normalizePrivateKey,
 } from '@/lib/crypto/utils';
-import { Registry } from '@/service/did/resolver/Registry';
+import { DefaultRegistry } from '@/service/did/resolver/DefaultRegistry';
 import { Builder } from '@/service/agent/builder/Builder';
 import { DeepPartial } from '@/lib/util';
 
@@ -41,7 +41,7 @@ export class Registrar {
     if (!this.signingKey) this.generateKeys();
 
     if (this.signingKey && this.encryptionKey) {
-      const registry = new Registry(this.config || {});
+      const registry = new DefaultRegistry(this.config || {});
       const did = await registry.registerForKeys(
         this.signingKey,
         this.encryptionKey

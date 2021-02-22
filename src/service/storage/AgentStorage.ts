@@ -6,6 +6,15 @@ export type PutOptions = {
 export type RemoveOptions = {
   errorOnMissing?: boolean;
 };
+
+/**
+ * The storage module for an agent. Task state and DID documents of all known
+ * parties are stored here. Example implementations may include:
+ * - local storage for browsers
+ * - file storage for a command-line agent or REPL
+ * - DB for a remote agent.
+ *
+ */
 export interface AgentStorage {
   put(
     key: StorageKey,

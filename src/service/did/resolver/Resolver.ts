@@ -9,14 +9,15 @@ import {
 import { DID } from '@/api/DID';
 import { AgentStorage } from '@/service/storage/AgentStorage';
 import { Config } from '@/api/Agent';
-import { Registry } from '@/service/did/resolver/Registry';
+import { DefaultRegistry } from '@/service/did/resolver/DefaultRegistry';
 import { bind } from '@/wire/util';
 import { TYPES } from '@/wire/type';
 import { Container } from 'inversify';
 
 export const STORAGE_FOLDER = 'dids';
 
-const makeRegistry = (config: Config) => new Registry(config).resolvers();
+const makeRegistry = (config: Config) =>
+  new DefaultRegistry(config).resolvers();
 
 const wrapStorage = (storage: AgentStorage): DIDCache => async (
   parsed: ParsedDID,

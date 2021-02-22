@@ -24,6 +24,8 @@ import { DefaultTaskMaster, TaskMaster } from '@/service/task/TaskMaster';
 import { DefaultHttp } from '@/service/transport/http/DefaultHttp';
 import { Http } from '@/service/transport/http/Http';
 import { bindIfAbsent } from '@/wire/util';
+import { DefaultRegistry } from '@/service/did/resolver/DefaultRegistry';
+import { Config } from '@/api/Agent';
 
 export const wire = (container: Container) => {
   // Always use bindIfAbsent here to avoid overwriting bindings made via the agent builder
@@ -55,4 +57,9 @@ export const wire = (container: Container) => {
   bindIfAbsent<EventBus>(container, TYPES.EventBus)
     ?.to(DefaultEventBus)
     .inSingletonScope();
+
+  bindIfAbsent<DefaultRegistry>(
+    container,
+    TYPES.DIDRegistry
+  )?.toFactory(() => (config: Config) => new DefaultRegistry(config));
 };

@@ -19,6 +19,10 @@ import Debug from 'debug';
 
 const debug = Debug('ia:task:master');
 
+/**
+ * The coordinator for all agent tasks. See ARCHITECTURE.md for a description
+ * of tasks.
+ */
 export interface TaskMaster {
   dispatch<CT extends string, C extends Command<CT>>(
     type: CT,

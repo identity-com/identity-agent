@@ -10,6 +10,25 @@ designed to be extensible to support various use-cases and environments.
 
 ## Quick Start
 
+### Running as a library
+
+```
+yarn add @identity.com/identity-agent
+```
+
+```js
+const did = 'did:your-did-here'
+const agent = await Agent.for(did).build()
+
+const bob = 'did:bobs-did'
+await agent.send({ message: 'hello Bob!'}, bob)
+```
+
+### Building locally
+
+Note: Before contributing to this project, please check out the code of conduct
+and contributing guidelines. Thanks!
+
 Install
 
 Identity-Agent uses [nvm](https://github.com/nvm-sh/nvm) and [yarn](https://yarnpkg.com/)

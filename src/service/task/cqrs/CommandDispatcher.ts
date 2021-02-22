@@ -3,6 +3,9 @@ import { Command } from '@/service/task/cqrs/Command';
 import { TaskRepository } from '@/service/task/cqrs/TaskRepository';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '@/wire/type';
+import Debug from 'debug';
+
+const debug = Debug('ia:task:command');
 
 export interface CommandDispatcher {
   registerCommandHandler<
@@ -66,7 +69,7 @@ export class DefaultCommandDispatcher implements CommandDispatcher {
 
     if (!task) throw new Error(`No task found with ID ${command.taskId}`);
 
-    console.log(`Dispatching command: ${type}`, command);
+    debug(`Dispatching command: ${type} - %o`, command);
 
     return handlers.reduce(async (previousPromise, handler) => {
       await previousPromise;

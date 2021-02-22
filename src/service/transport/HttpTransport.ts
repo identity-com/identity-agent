@@ -15,6 +15,9 @@ import { inject, injectable } from 'inversify';
 import { TYPES } from '@/wire/type';
 import { DIDDocument } from 'did-resolver';
 import { JWE, JWTVerified } from 'did-jwt';
+import Debug from 'debug';
+
+const debug = Debug('ia:transport:http');
 
 const defaultTransportOptions: TransportOptions = {
   encrypted: true,
@@ -79,7 +82,7 @@ export class HttpTransport implements Transport {
         recipient +
         ' has no suitable service endpoint for payload of type ' +
         type;
-      console.error(message, JSON.stringify({ document }, null, 1));
+      debug(message + ' %o', JSON.stringify({ document }, null, 1));
       throw new Error(message);
     }
 
@@ -89,7 +92,7 @@ export class HttpTransport implements Transport {
       throw new Error('DID service endpoints not yet supported');
     }
 
-    console.log(`Sending to ${recipient}`, payload);
+    debug(`Sending to ${recipient} - %o`, payload);
 
     const body = await this.makeHttpBody(payload, recipient, options);
     const headers = await this.headers();

@@ -1,3 +1,4 @@
+import Debug from 'debug';
 import { DID } from '@/api/DID';
 import {
   S3Client,
@@ -12,6 +13,8 @@ import { streamToString, SupportedStream } from '@/lib/transport/streams';
 const AWS_REGION = 'us-east-1';
 const BUCKET = 'did-cache';
 const PREFIX = 'dids';
+
+const debug = Debug('ia:resolver:s3');
 
 type S3Config = {
   // include this only while we keep an S3Cache DID resolver
@@ -62,11 +65,11 @@ export class S3Cache {
       .then(() => true)
       .catch((error) => {
         if (error.$metadata.httpStatusCode === 403) {
-          console.log('S3 Cache disabled, permission denied');
+          debug('S3 Cache disabled, permission denied');
           return false;
         }
 
-        console.error('S3 Cache disabled - error ', error);
+        debug('S3 Cache disabled - error %o', error);
         throw error;
       });
   }
@@ -85,7 +88,7 @@ export class S3Cache {
       );
       return JSON.parse(stringifiedDocument);
     } catch (error) {
-      console.error(error);
+      debug('Unknown object stream type. Error %o', error);
       throw new Error('Unknown object stream type.');
     }
   };

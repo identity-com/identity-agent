@@ -15,6 +15,9 @@ import {
 } from '@/service/task/cqrs/CommandHandler';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '@/wire/type';
+import Debug from 'debug';
+
+const debug = Debug('ia:task:master');
 
 export interface TaskMaster {
   dispatch<CT extends string, C extends Command<CT>>(
@@ -122,7 +125,7 @@ export class DefaultTaskMaster implements TaskMaster {
     handler: CommandHandler<CT, C, S>,
     overwrite: boolean = false
   ) {
-    console.log('Registering command handler for type ' + commandType);
+    debug('Registering command handler for type ' + commandType);
     const commandHandler = isCommandHandler(handler) ? handler : wrap(handler);
 
     commandHandler.eventBus = this.eventBus; // TODO add to inversify container

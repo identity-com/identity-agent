@@ -39,6 +39,7 @@
   "module": "dist/identity-agent.esm.js",
   "devDependencies": {
     "@types/bs58": "^4.0.1",
+    "@types/debug": "^4.1.5",
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.28",
     "@types/node-fetch": "^2.5.8",
@@ -68,6 +69,7 @@
     "@aws-sdk/client-s3": "^3.4.1",
     "bitcoinjs-lib": "^5.2.0",
     "bs58": "^4.0.1",
+    "debug": "^4.3.1",
     "did-jwt": "^4.8.1",
     "did-resolver": "^2.1.2",
     "inversify": "^5.0.5",

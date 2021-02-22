@@ -11,6 +11,9 @@ import { TaskMaster } from '@/service/task/TaskMaster';
 import { bind } from '@/wire/util';
 import { TYPES } from '@/wire/type';
 import { Container } from 'inversify';
+import Debug from 'debug';
+
+const debug = Debug('ia:task:microwave');
 
 const whirr = (durationMS: number) =>
   new Promise((resolve) => setTimeout(resolve, durationMS));
@@ -64,7 +67,7 @@ type Handler<ET extends string> = EventHandler<ET, MicrowaveState>;
 
 export class DoneEventHandler implements Handler<EventType.Done> {
   handle() {
-    console.log('Ping!');
+    debug('Ping!');
   }
 }
 

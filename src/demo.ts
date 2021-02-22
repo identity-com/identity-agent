@@ -3,6 +3,9 @@ import { Agent, Identity } from '@/api/internal';
 import { JWTVerified } from 'did-jwt';
 import { DID } from '@/api/DID';
 import { differenceWith, eqProps, prop } from 'ramda';
+import Debug from 'debug';
+
+const debug = Debug('ia:demo');
 
 const createDID = async (): Promise<Identity> => {
   const signingKey = generateSignKey();
@@ -39,15 +42,15 @@ const processNewMessages = async (agent: Agent) => {
 
   messages.forEach((m) => {
     if (m.payload.presentation) {
-      console.log(`${m.issuer} responded with presentation:`);
-      console.log(JSON.stringify(m.payload.presentation, null, 1));
+      debug(`${m.issuer} responded with presentation:`);
+      debug(JSON.stringify(m.payload.presentation, null, 1));
     } else if (m.payload.presentationRequest) {
       agent
         .asSubject()
         .resolvePresentationRequest(m.payload.request, m.issuer as DID);
     } else {
-      console.log('Received message:');
-      console.log(m.payload);
+      debug('Received message:');
+      debug('%o', m.payload);
     }
   });
 };

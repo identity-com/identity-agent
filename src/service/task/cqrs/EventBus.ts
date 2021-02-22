@@ -6,6 +6,9 @@ import { propEq } from 'ramda';
 import EventEmitter from 'events';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '@/wire/type';
+import Debug from 'debug';
+
+const debug = Debug('ia:task:eventbus');
 
 export type Handler<T extends string, S> =
   | EventHandler<T, S>
@@ -52,7 +55,7 @@ export class DefaultEventBus implements EventBus {
     eventPayload: Partial<S>,
     task: Task<S>
   ) {
-    console.log(`Event emitted: ${type}`, eventPayload);
+    debug(`Event emitted: ${type} - %o`, eventPayload);
     const event = { type, payload: eventPayload };
     this.taskRepository.update(task.id, event);
     return this.eventEmitter.emit(type, event, task);
@@ -63,7 +66,7 @@ export class DefaultEventBus implements EventBus {
     handler: Handler<T, S>,
     overwrite: boolean
   ) {
-    console.log('Registering listener for type ' + type);
+    debug(`Registering listener for type ${type}`);
 
     const eventHandler = isEventHandler(handler)
       ? handler

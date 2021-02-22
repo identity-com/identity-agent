@@ -8,6 +8,19 @@ as well as requesting and resolving [Verifiable Credentials](https://www.w3.org/
 The Agent can be run via the command line, in the browser or on a remote server, and is
 designed to be extensible to support various use-cases and environments.
 
+## Capabilities
+
+- ✅ Resolve a DID to a document with a pluggable DID resolver
+- ✅ Sign, encrypt, decrypt and verify a message using DIDs
+- ✅ Send a message E2E encrypted using a simple decentralized 'hub' API
+- ✅ Create and process long-running tasks for credential presentation
+
+### TODO for V1   
+
+- ⏳ Integrate with a remote DID resolver (e.g [uniresolver.io](http://uniresolver.io/))
+- ⏳ A simple local credential store and presentation resolver
+- ⏳ Resolve tasks on incoming messages
+
 ## Quick Start
 
 ### Running as a library

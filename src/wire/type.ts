@@ -2,6 +2,7 @@ export const TYPES = {
   DIDDocument: Symbol('DIDDocument'),
   AgentStorage: Symbol('AgentStorage'),
   DIDResolver: Symbol('DIDResolver'),
+  DIDRegistry: Symbol('DIDRegistry'),
   CryptoModule: Symbol('CryptoModule'),
 
   Transport: Symbol('Transport'),

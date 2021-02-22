@@ -17,6 +17,10 @@ export type TransportOptions = {
   signed?: boolean;
 };
 
+/**
+ * The transport layer for agents. This API is independent of the communication
+ * mechanism.
+ */
 export interface Transport {
   send(
     recipient: DID,

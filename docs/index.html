@@ -1,0 +1,419 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>@identity.com/identity-agent</title>
+	<meta name="description" content="Documentation for @identity.com/identity-agent">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script async src="assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">@identity.com/identity-agent</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<h1>@identity.com/identity-agent</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#identity-agent" id="identity-agent" style="color: inherit; text-decoration: none;">
+					<h1>Identity Agent</h1>
+				</a>
+				<p>The Identity Agent is a Self-Sovereign Identity agent based on <a href="https://www.w3.org/TR/did-core/Overview.html">DIDs</a>.</p>
+				<p>The Agent is capable of communicating with other DID-based agents using end-to-end encryption,
+				as well as requesting and resolving <a href="https://www.w3.org/TR/vc-data-model">Verifiable Credentials</a>.</p>
+				<p>The Agent can be run via the command line, in the browser or on a remote server, and is
+				designed to be extensible to support various use-cases and environments.</p>
+				<a href="#quick-start" id="quick-start" style="color: inherit; text-decoration: none;">
+					<h2>Quick Start</h2>
+				</a>
+				<p>Install</p>
+				<p>Identity-Agent uses <a href="https://github.com/nvm-sh/nvm">nvm</a> and <a href="https://yarnpkg.com/">yarn</a></p>
+				<pre><code class="language-shell"><span style="color: #000000">nvm i</span>
+<span style="color: #000000">yarn</span>
+</code></pre>
+				<p>Start a REPL like this:</p>
+				<pre><code class="language-shell"><span style="color: #000000">yarn repl</span>
+</code></pre>
+				<a href="#agent-creation" id="agent-creation" style="color: inherit; text-decoration: none;">
+					<h2>Agent creation</h2>
+				</a>
+				<a href="#register-a-did" id="register-a-did" style="color: inherit; text-decoration: none;">
+					<h3>Register a DID</h3>
+				</a>
+				<pre><code class="language-js"><span style="color: #795E26">createIdentity</span><span style="color: #000000">()</span>
+</code></pre>
+				<a href="#create-a-privileged-agent" id="create-a-privileged-agent" style="color: inherit; text-decoration: none;">
+					<h3>Create a privileged agent</h3>
+				</a>
+				<p>Creating an agent with a private key</p>
+				<pre><code class="language-js"><span style="color: #001080">a</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">Agent</span><span style="color: #000000">.</span><span style="color: #795E26">for</span><span style="color: #000000">(</span><span style="color: #001080">Alice</span><span style="color: #000000">.</span><span style="color: #001080">did</span><span style="color: #000000">).</span><span style="color: #795E26">withKeys</span><span style="color: #000000">(</span><span style="color: #001080">Alice</span><span style="color: #000000">.</span><span style="color: #001080">signingKey</span><span style="color: #000000">, </span><span style="color: #001080">Alice</span><span style="color: #000000">.</span><span style="color: #001080">encryptionKey</span><span style="color: #000000">).</span><span style="color: #795E26">build</span><span style="color: #000000">()</span>
+
+<span style="color: #008000">// shorter version</span>
+<span style="color: #001080">a</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">Agent</span><span style="color: #000000">.</span><span style="color: #795E26">for</span><span style="color: #000000">(</span><span style="color: #001080">Alice</span><span style="color: #000000">).</span><span style="color: #795E26">build</span><span style="color: #000000">()</span>
+</code></pre>
+				<a href="#create-a-non-privileged-agent" id="create-a-non-privileged-agent" style="color: inherit; text-decoration: none;">
+					<h3>Create a non-privileged agent</h3>
+				</a>
+				<p>Creating an agent with no private keys (e.g. a mediator or relay)</p>
+				<pre><code class="language-js"><span style="color: #001080">b</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">Agent</span><span style="color: #000000">.</span><span style="color: #795E26">for</span><span style="color: #000000">(</span><span style="color: #001080">Bob</span><span style="color: #000000">.</span><span style="color: #001080">did</span><span style="color: #000000">).</span><span style="color: #795E26">build</span><span style="color: #000000">()</span>
+</code></pre>
+				<a href="#messages" id="messages" style="color: inherit; text-decoration: none;">
+					<h2>Messages</h2>
+				</a>
+				<a href="#send-a-message-via-http" id="send-a-message-via-http" style="color: inherit; text-decoration: none;">
+					<h3>Send a message via HTTP</h3>
+				</a>
+				<pre><code class="language-js"><span style="color: #001080">message</span><span style="color: #000000"> = { </span><span style="color: #001080">hello:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;Bob&#039;</span><span style="color: #000000"> }</span>
+<span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">a</span><span style="color: #000000">.</span><span style="color: #795E26">send</span><span style="color: #000000">(</span><span style="color: #001080">message</span><span style="color: #000000">, </span><span style="color: #001080">Bob</span><span style="color: #000000">.</span><span style="color: #001080">did</span><span style="color: #000000">)</span>
+</code></pre>
+				<a href="#sign-a-message" id="sign-a-message" style="color: inherit; text-decoration: none;">
+					<h3>Sign a message</h3>
+				</a>
+				<pre><code class="language-js"><span style="color: #001080">jwt</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">a</span><span style="color: #000000">.</span><span style="color: #795E26">sign</span><span style="color: #000000">({</span><span style="color: #001080">some:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;payload&#039;</span><span style="color: #000000">})</span>
+</code></pre>
+				<a href="#verify-a-message" id="verify-a-message" style="color: inherit; text-decoration: none;">
+					<h3>Verify a message</h3>
+				</a>
+				<pre><code class="language-js"><span style="color: #001080">verifiedPayload</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">b</span><span style="color: #000000">.</span><span style="color: #795E26">verify</span><span style="color: #000000">(</span><span style="color: #001080">jwt</span><span style="color: #000000">)</span>
+</code></pre>
+				<a href="#subject-operations" id="subject-operations" style="color: inherit; text-decoration: none;">
+					<h2>Subject operations</h2>
+				</a>
+				<a href="#resolve-a-verifiable-presentation" id="resolve-a-verifiable-presentation" style="color: inherit; text-decoration: none;">
+					<h3>Resolve a verifiable presentation</h3>
+				</a>
+				<pre><code class="language-js"><span style="color: #001080">presentation</span><span style="color: #000000"> = {} </span><span style="color: #008000">// dummy</span>
+
+<span style="color: #001080">taskContext</span><span style="color: #000000"> = </span><span style="color: #001080">a</span><span style="color: #000000">.</span><span style="color: #795E26">asSubject</span><span style="color: #000000">().</span><span style="color: #795E26">resolvePresentationRequest</span><span style="color: #000000">(</span><span style="color: #001080">presentation</span><span style="color: #000000">, </span><span style="color: #001080">Bob</span><span style="color: #000000">.</span><span style="color: #001080">did</span><span style="color: #000000">)</span>
+
+<span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">taskContext</span><span style="color: #000000">.</span><span style="color: #795E26">waitForDone</span><span style="color: #000000">()</span>
+</code></pre>
+				<a href="#verifier-operations" id="verifier-operations" style="color: inherit; text-decoration: none;">
+					<h2>Verifier operations</h2>
+				</a>
+				<a href="#request-a-verifiable-presentation" id="request-a-verifiable-presentation" style="color: inherit; text-decoration: none;">
+					<h3>Request a verifiable presentation</h3>
+				</a>
+				<pre><code class="language-js"><span style="color: #001080">request</span><span style="color: #000000"> = {}</span>
+
+<span style="color: #001080">taskContext</span><span style="color: #000000"> = </span><span style="color: #001080">a</span><span style="color: #000000">.</span><span style="color: #795E26">asVerifier</span><span style="color: #000000">().</span><span style="color: #795E26">requestPresentation</span><span style="color: #000000">(</span><span style="color: #001080">request</span><span style="color: #000000">, </span><span style="color: #001080">Bob</span><span style="color: #000000">.</span><span style="color: #001080">did</span><span style="color: #000000">)</span>
+
+<span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">taskContext</span><span style="color: #000000">.</span><span style="color: #795E26">waitForDone</span><span style="color: #000000">()</span>
+</code></pre>
+				<a href="#running-the-example-browser-app" id="running-the-example-browser-app" style="color: inherit; text-decoration: none;">
+					<h2>Running the example browser app</h2>
+				</a>
+				<p>The example app must be linked to the library using yarn link.</p>
+				<pre><code class="language-shell"><span style="color: #000000">yarn link</span>
+<span style="color: #795E26">cd</span><span style="color: #000000"> examples/browser</span>
+<span style="color: #000000">yarn</span>
+<span style="color: #000000">yarn link identity-agent</span>
+<span style="color: #000000">yarn start</span>
+</code></pre>
+				<a href="#architecture" id="architecture" style="color: inherit; text-decoration: none;">
+					<h2>Architecture</h2>
+				</a>
+				<p>Given the variety of identity use-cases, the Identity Agent is designed to be flexible.
+					However, it does have some core concepts and design patterns that are described in this
+				document.</p>
+				<a href="#extending-the-agent" id="extending-the-agent" style="color: inherit; text-decoration: none;">
+					<h3>Extending the Agent</h3>
+				</a>
+				<p>The Agent uses <a href="https://en.wikipedia.org/wiki/Dependency_injection">dependency injection</a>
+				to allow it to be extensible by clients.</p>
+				<p>The following example shows how to inject an alternative storage module, e.g. to store
+				messages in a database:</p>
+				<pre><code class="language-ts"><span style="color: #AF00DB">import</span><span style="color: #000000"> { </span><span style="color: #001080">AgentStorage</span><span style="color: #000000"> } </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;identity-agent&#039;</span><span style="color: #000000">;</span>
+
+<span style="color: #0000FF">class</span><span style="color: #000000"> </span><span style="color: #267F99">MyDBStorage</span><span style="color: #000000"> </span><span style="color: #0000FF">implements</span><span style="color: #000000"> </span><span style="color: #267F99">AgentStorage</span><span style="color: #000000"> {</span>
+<span style="color: #000000">  </span><span style="color: #008000">// ...implement the interface</span>
+<span style="color: #000000">}</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myDBStorage</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">MyDBStorage</span><span style="color: #000000">()</span>
+<span style="color: #001080">Agent</span><span style="color: #000000">.</span><span style="color: #795E26">for</span><span style="color: #000000">(</span><span style="color: #001080">did</span><span style="color: #000000">).</span><span style="color: #795E26">with</span><span style="color: #000000">&lt;</span><span style="color: #267F99">AgentStorage</span><span style="color: #000000">&gt;(</span><span style="color: #0070C1">TYPES</span><span style="color: #000000">.</span><span style="color: #001080">AgentStorage</span><span style="color: #000000">, </span><span style="color: #001080">myDBStorage</span><span style="color: #000000">)</span>
+</code></pre>
+				<a href="#components" id="components" style="color: inherit; text-decoration: none;">
+					<h3>Components</h3>
+				</a>
+				<p>The following components are used by the Identity Agent:</p>
+				<table>
+					<thead>
+						<tr>
+							<th>Module</th>
+							<th>Description</th>
+							<th>Default</th>
+						</tr>
+					</thead>
+					<tbody><tr>
+							<td>AgentStorage</td>
+							<td>Storage interface used to store and retrieve DID documents and task state</td>
+							<td>Backed by node-localstorage.<br>Stores data in localstorage when run in the browser,<br>and in a scratch folder when run via node.</td>
+						</tr>
+						<tr>
+							<td>DIDResolver</td>
+							<td>A function which resolves a DID to its document</td>
+							<td>Looks up an AWS S3 bucket, if credentials are provided,<br>otherwise uses a local in-memory cache. Note - retrieved DID<br>documents are stored in the AgentStorage.</td>
+						</tr>
+						<tr>
+							<td>CryptoModule</td>
+							<td>Encapsulates cryptographic functions such as encrypting, decrypting and signing</td>
+							<td>Uses tweetnacl and the X25519 curve for encryption/decryption<br>and bitcoin-js and the Secp256k1 Bitcoin curve for signing.</td>
+						</tr>
+						<tr>
+							<td>Transport</td>
+							<td>An interface uses for communicating with other agents (including remote agents<br>controlled by the same DID)</td>
+							<td>Backed by the Http module</td>
+						</tr>
+						<tr>
+							<td>Http</td>
+							<td>A Http client</td>
+							<td>Backed by node-fetch (uses window.fetch on the browser)</td>
+						</tr>
+						<tr>
+							<td>IssuerProxy</td>
+							<td>A client-side proxy for credential issuers. Used by the identity agent to make<br>credential requests.</td>
+							<td>A stub. This should be replaced by clients. An identity.com<br>IDV Toolkit proxy is under development.</td>
+						</tr>
+						<tr>
+							<td>PresentationVerification</td>
+							<td>A service that cryptographically verifies presented credentials</td>
+							<td>A stub. The implementation depends on the type of credentials<br>and proofs used. An identity.com-compliant implementation is<br>under development.</td>
+						</tr>
+						<tr>
+							<td>Presenter</td>
+							<td>A service that locates and presents credentials in response to a presentation<br>request</td>
+							<td>A stub. An identity.com-compliant implementation is<br>under development.</td>
+						</tr>
+				</tbody></table>
+				<a href="#tasks" id="tasks" style="color: inherit; text-decoration: none;">
+					<h3>Tasks</h3>
+				</a>
+				<p>Tasks are defined as:</p>
+				<ul>
+					<li>long-running</li>
+					<li>resumable</li>
+					<li>interactive</li>
+					<li>chainable</li>
+				</ul>
+				<p>processes.</p>
+				<p>Examples are:</p>
+				<ul>
+					<li>PresentationRequest: a verifier requests a presentation from a subject:</li>
+					<li>Presentation: a subject receives a presentation request from a verifier and responds
+					with a presentation of one or more credentials.</li>
+					<li>CredentialRequest: a subject requests the issuance of a credential from
+						an issuer. This usually results in a flow of information from the subject to the issuer
+					as they validate the subject&#39;s identity.</li>
+				</ul>
+				<a href="#long-running" id="long-running" style="color: inherit; text-decoration: none;">
+					<h4>Long-running</h4>
+				</a>
+				<p>If a process may take longer than 1-2 seconds, it may make sense to model
+				it as a task. The reason for this is resumability (see below).</p>
+				<a href="#resumable" id="resumable" style="color: inherit; text-decoration: none;">
+					<h4>Resumable</h4>
+				</a>
+				<p>Since agents are often used on mobile devices, browsers, or are otherwise ephemeral,
+					long-running tasks must be able to store and resume their own state, so that
+				they can continue after the agent has restarted.</p>
+				<p>For example, a credential request task may be in progress with an issuer, that is
+					performing background checks that may take days. Once complete, the credential
+				request task should be completed, resulting in a credential stored in the AgentStorage.</p>
+				<a href="#interactive" id="interactive" style="color: inherit; text-decoration: none;">
+					<h4>Interactive</h4>
+				</a>
+				<p>Tasks may require input from the user or some external service. For example,
+					a credential request may require the user to answer questions from the
+					issuer, or a remote agent may require permission from the user before
+				presenting a credential to a verifier.</p>
+				<a href="#chainable" id="chainable" style="color: inherit; text-decoration: none;">
+					<h4>Chainable</h4>
+				</a>
+				<p>Tasks may spawn or resolve other tasks. Consider thee following complicated but
+				plausible example.</p>
+				<ul>
+					<li>Potential employer E, asks candidate C for their
+					university transcript (PresentationRequest Task 1)</li>
+					<li>C does not recognise E and asks for their &quot;Organisation Credential&quot;
+					(PresentationRequest Task 2)</li>
+					<li>E requests an organisation credential from an issuer
+					I1 capable of issuing such credentials (CredentialRequest Task 3)</li>
+					<li>I1 issues a credential to E, resolving task 3</li>
+					<li>E sends the credential to C, resolving task 2</li>
+					<li>C accepts the credential, and asks their university U
+					to issue them with a transcript credential (PresentationRequest Task 4)</li>
+					<li>In order to verify they are speaking to the correct
+						former student, U asks C to provide their passport
+					credential (CredentialRequest Task 5)</li>
+					<li>C scans and sends their passport document to U as a
+					self-signed credential, resolving task 5.</li>
+					<li>U accepts the self-signed credential as sufficient proof
+					and issues the transcript credential, resolving task 6</li>
+					<li>Finally, C presents the transcript credential to E, resolving task 1</li>
+				</ul>
+				<a href="#task-architecture" id="task-architecture" style="color: inherit; text-decoration: none;">
+					<h4>Task Architecture</h4>
+				</a>
+				<p>Tasks are designed using the CQRS model and Event Sourcing,
+					so that state can easily be stored and rehydrated
+				when an agent is resumed.</p>
+				<p>Tasks are therefore not directly manipulated, but are updated by executing <em>commands</em>,
+				which emit <em>events</em>. The task state is the composition of the payloads of each of these events.</p>
+				<p>Events can themselves trigger new commands, so the entire task can be modelled as a <em>flow</em>.</p>
+				<p>Formally a <em>flow</em> consists of the following:</p>
+				<ol>
+					<li>A State type: this defines the contents of the task. Each event payload is therefore a deep subset of this state.</li>
+					<li>A set of command types</li>
+					<li>A set of event types</li>
+					<li>A set of default Command Handlers that are executed when a command is triggered</li>
+					<li>A set of default Event Handlers that are called when an event of a particular type is added to the task.</li>
+				</ol>
+				<a href="#roles" id="roles" style="color: inherit; text-decoration: none;">
+					<h3>Roles</h3>
+				</a>
+				<p>By default, an agent is in neutral role, i.e. it has not assumed a role in the SSI
+				<a href="https://freecontent.manning.com/the-basic-building-blocks-of-ssi/">trust triangle</a>.</p>
+				<p>In order to keep the base API simple, most actions that an agent can perform are hidden
+				behind the role APIs: Subject and Verifier.</p>
+				<p>To switch role, call the following functions:</p>
+				<pre><code><span style="color: #001080">agent</span><span style="color: #000000">.</span><span style="color: #795E26">asSubject</span><span style="color: #000000">()</span>
+
+<span style="color: #001080">agent</span><span style="color: #000000">.</span><span style="color: #795E26">asVerifier</span><span style="color: #000000">()</span>
+</code></pre>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="modules.html">Exports</a>
+					</li>
+					<li class=" tsd-kind-namespace">
+						<a href="modules/demo.html">demo</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-class">
+						<a href="classes/agent.html" class="tsd-kind-icon">Agent</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/agentstorage.html" class="tsd-kind-icon">Agent<wbr>Storage</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/cryptomodule.html" class="tsd-kind-icon">Crypto<wbr>Module</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/http.html" class="tsd-kind-icon">Http</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/issuerproxy.html" class="tsd-kind-icon">Issuer<wbr>Proxy</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/presentationverification.html" class="tsd-kind-icon">Presentation<wbr>Verification</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/presenter.html" class="tsd-kind-icon">Presenter</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/taskmaster.html" class="tsd-kind-icon">Task<wbr>Master</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/transport.html" class="tsd-kind-icon">Transport</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#config" class="tsd-kind-icon">Config</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#did" class="tsd-kind-icon">DID</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-external">
+						<a href="modules.html#didresolver" class="tsd-kind-icon">DIDResolver</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#payloadtype" class="tsd-kind-icon">Payload<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#presentation" class="tsd-kind-icon">Presentation</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#presentationrequest" class="tsd-kind-icon">Presentation<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#types" class="tsd-kind-icon">TYPES</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

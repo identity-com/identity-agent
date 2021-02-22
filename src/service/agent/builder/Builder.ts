@@ -24,6 +24,9 @@ import { register as registerRequestInputFlow } from '@/service/task/cqrs/reques
 
 import { Container } from 'inversify';
 
+/**
+ * A builder for configuring and generating agent
+ */
 export class Builder {
   did: DID;
   config: DeepPartial<Config>;
@@ -38,6 +41,13 @@ export class Builder {
     this.container = new Container();
   }
 
+  /**
+   * Addi private keys to an agent to make it a 'privileged' agent,
+   * i.e. able to sign and decrypt messages on behalf of the owner of the
+   * DID.
+   * @param signingKey
+   * @param encryptionKey
+   */
   withKeys(
     signingKey: AsymmetricKeyInput,
     encryptionKey: nacl.BoxKeyPair
@@ -47,6 +57,21 @@ export class Builder {
     return this;
   }
 
+  /**
+   * Add a plugin to the agent.
+   *
+   * For example, to add a different storage module:
+   *
+   * ```
+   * await Agent
+   *  .for(did)
+   *  .with(TYPES.AgentStorage, myStorageModule)
+   *  .build()
+   * ```
+   *
+   * @param type
+   * @param component
+   */
   with<T>(type: symbol, component: T): this {
     this.container
       .bind<T>(type)
@@ -55,6 +80,25 @@ export class Builder {
     return this;
   }
 
+  /**
+   * Add a plugin type to the agent. Use [inversify](https://inversify.io/)
+   * to register bind targets.
+   *
+   * For example, to add a different storage module:
+   *
+   * ```
+   * @injectable
+   * class MyStorageModule implements AgentStorage { ... }
+   *
+   * await Agent
+   *  .for(did)
+   *  .with(TYPES.AgentStorage, myStorageModule)
+   *  .build()
+   * ```
+   *
+   * @param type
+   * @param constructor
+   */
   withType<T>(type: symbol, constructor: new (...args: any[]) => T): this {
     this.container.bind<T>(type).to(constructor).whenTargetIsDefault();
     return this;
@@ -94,6 +138,9 @@ export class Builder {
       .toConstantValue(cryptoModule);
   }
 
+  /**
+   * Resolve the DID document and generate the agent.
+   */
   async build(): Promise<Agent> {
     await this.configure();
 

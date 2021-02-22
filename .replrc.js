@@ -2,13 +2,13 @@ require('dotenv').config()
 const identityAgent = require('./dist/');
 
 
-const { demo: { createDID, resolveDID, ...demoRest }, ...identityAgentRest } = identityAgent;
+const { demo: { createIdentity, resolveDID, ...demoRest }, ...identityAgentRest } = identityAgent;
 
-const Alice = createDID()
-const Bob = createDID()
+const Alice = createIdentity()
+const Bob = createIdentity()
 
 module.exports = {
   enableAwait: true,
-  context: { Alice, Bob, createDID, resolveDID, demo: demoRest, ...identityAgentRest },
+  context: { Alice, Bob, createIdentity, resolveDID, demo: demoRest, ...identityAgentRest },
   prompt: 'Identity $ '
 }

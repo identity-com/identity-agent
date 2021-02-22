@@ -11,8 +11,19 @@ import { AsymmetricKey } from '@/service/crypto/CryptoModule';
 import nacl from 'tweetnacl';
 import { DID_METHOD } from '@/lib/did/utils';
 import { always, memoizeWith } from 'ramda';
+import { injectable } from 'inversify';
 
-export class Registry {
+interface Registry {
+  register(document: DIDDocument): Promise<DID>;
+
+  registerForKeys(
+    signKey: AsymmetricKey,
+    encryptKey: nacl.BoxKeyPair
+  ): Promise<DID>;
+}
+
+@injectable()
+export class DefaultRegistry implements Registry {
   private s3Cache: S3Cache;
 
   constructor(private config: Config) {

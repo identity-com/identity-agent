@@ -53,7 +53,7 @@
     "local-repl": "^4.0.0",
     "pinst": "^2.1.4",
     "prettier": "^2.2.1",
-    "release-it": "^14.2.2",
+    "release-it": "^14.4.1",
     "rollup-plugin-typescript2": "^0.29.0",
     "ts-jest": "^26.4.4",
     "ts-node": "^9.1.1",

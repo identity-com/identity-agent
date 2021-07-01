@@ -4755,10 +4755,10 @@ humanize-duration@^3.15.3:
   resolved "https://registry.yarnpkg.com/humanize-duration/-/humanize-duration-3.25.1.tgz"
   integrity sha512-P+dRo48gpLgc2R9tMRgiDRNULPKCmqFYgguwqOO2C0fjO35TgdURDQDANSR1Nt92iHlbHGMxOTnsB8H8xnMa2Q==
 
-husky@5:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/husky/-/husky-5.1.0.tgz#68b1148523acc838af0655ead71bf4671adb9f93"
-  integrity sha512-Os0EY2haOO+59YZSwMiUDsHY43RFwBVIRStHcnnT8/kvA+sFfaA/YS4uLFRiymXYgQl6E6TQTt3y4v/Z2ctEtw==
+husky@7:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/husky/-/husky-7.0.0.tgz#3dbd5d28e76234689ee29bb41e048f28e3e46616"
+  integrity sha512-xK7lO0EtSzfFPiw+oQncQVy/XqV7UVVjxBByc+Iv5iK3yhW9boDoWgvZy3OGo48QKg/hUtZkzz0hi2HXa0kn7w==
 
 iconv-lite@0.4.24, iconv-lite@^0.4.24:
   version "0.4.24"

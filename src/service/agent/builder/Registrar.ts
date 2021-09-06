@@ -12,6 +12,7 @@ import {
 import { DefaultRegistry } from '@/service/did/resolver/DefaultRegistry';
 import { Builder } from '@/service/agent/builder/Builder';
 import { DeepPartial } from '@/lib/util';
+import { DefaultHttp } from '@/service/transport/http/DefaultHttp';
 
 export class Registrar {
   signingKey?: AsymmetricKey;
@@ -41,7 +42,10 @@ export class Registrar {
     if (!this.signingKey) this.generateKeys();
 
     if (this.signingKey && this.encryptionKey) {
-      const registry = new DefaultRegistry(this.config || {});
+      const registry = new DefaultRegistry(
+        this.config || {},
+        new DefaultHttp()
+      );
       const did = await registry.registerForKeys(
         this.signingKey,
         this.encryptionKey

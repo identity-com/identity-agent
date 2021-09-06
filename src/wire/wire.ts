@@ -58,8 +58,9 @@ export const wire = (container: Container) => {
     ?.to(DefaultEventBus)
     .inSingletonScope();
 
+  const http = container.get<Http>(TYPES.Http);
   bindIfAbsent<DefaultRegistry>(
     container,
     TYPES.DIDRegistry
-  )?.toFactory(() => (config: Config) => new DefaultRegistry(config));
+  )?.toFactory(() => (config: Config) => new DefaultRegistry(config, http));
 };

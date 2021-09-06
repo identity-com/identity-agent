@@ -42,6 +42,7 @@ export const createJWT = (
   return didJWT.createJWT(payload, {
     issuer: did,
     signer,
+    //alg: 'Ed25519'  // TODO Parametrise. This allows th use of X25519 keys but other DIDs may use other keys
   });
 };
 

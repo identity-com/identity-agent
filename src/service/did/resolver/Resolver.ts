@@ -13,11 +13,12 @@ import { DefaultRegistry } from '@/service/did/resolver/DefaultRegistry';
 import { bind } from '@/wire/util';
 import { TYPES } from '@/wire/type';
 import { Container } from 'inversify';
+import { DefaultHttp } from '@/service/transport/http/DefaultHttp';
 
 export const STORAGE_FOLDER = 'dids';
 
 const makeRegistry = (config: Config) =>
-  new DefaultRegistry(config).resolvers();
+  new DefaultRegistry(config, new DefaultHttp()).resolvers();
 
 const wrapStorage = (storage: AgentStorage): DIDCache => async (
   parsed: ParsedDID,

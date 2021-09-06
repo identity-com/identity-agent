@@ -17,7 +17,10 @@ const dummyXpub =
 
 export const dummyEncryptKey = nacl.box.keyPair();
 
-const makeMessageService = (did: DID, config: Config): ServiceEndpoint => {
+export const makeMessageService = (
+  did: DID,
+  config: Config
+): ServiceEndpoint => {
   const hubBaseUrl = config.hubBaseUrl || DEFAULT_HUB;
 
   return {

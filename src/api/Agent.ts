@@ -20,6 +20,9 @@ export type Config = {
 
   // used when registering new DIDs only
   hubBaseUrl?: string;
+
+  // location of a remote DID resolver, following the uniresolver.io interface
+  resolverUrl?: string;
 };
 
 /**

@@ -7,7 +7,7 @@ export interface Presenter {
 
 // The stub implementation just returns the same presentation
 // for every request
-export class StubPresenter {
+export class StubPresenter implements Presenter {
   constructor(
     private dummyPresentation: Presentation = {
       dummy: 'presentation',

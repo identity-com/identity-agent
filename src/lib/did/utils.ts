@@ -3,11 +3,12 @@ import { PublicKey } from '@/service/crypto/CryptoModule';
 import { encode } from 'bs58';
 import { DID } from '@/api/DID';
 
-export const DID_METHOD = 'civic';
+export const DID_METHOD = 'sol';
+export const DID_IDENTIFIER_PREFIX = 'devnet:';
 export const DID_REGEX = /^did:(.+):(.+)$/;
 
 export const toDID = (method: string, identifier: string): DID =>
-  `did:${method}:${identifier}` as DID;
+  `did:${method}:${DID_IDENTIFIER_PREFIX}${identifier}` as DID;
 
 const decomposeDID = (did: DID) => {
   const components = did.match(DID_REGEX);

@@ -8,7 +8,7 @@ import { DID } from '@/api/DID';
 describe('did utils', () => {
   const keyPair = ECPair.fromPrivateKey(cryptoUtils.xprvToBytes(xprv));
   const publicKey = ECPair.fromPublicKey(keyPair.publicKey);
-  const expectedDID = 'did:civic:FT4ohfRGNWsok2kykdCugxtQePju2xYQBqZ1aVNSqokN';
+  const expectedDID = 'did:solid:FT4ohfRGNWsok2kykdCugxtQePju2xYQBqZ1aVNSqokN';
 
   describe('deriveFromKey', () => {
     it('should generate a DID from a key pair with a public key', () => {

@@ -1,4 +1,4 @@
-import { DIDDocument, ServiceEndpoint } from 'did-resolver';
+import { DIDDocument, PublicKey, ServiceEndpoint } from 'did-resolver';
 import { PayloadType } from '@/service/transport/Transport';
 import { propEq } from 'ramda';
 
@@ -20,4 +20,12 @@ export const getService = (
 ): ServiceEndpoint | undefined => {
   const services = didDocument.service || [];
   return services.find(propEq('type', serviceType));
+};
+
+export const getKey = (
+  didDocument: DIDDocument,
+  keyType: string
+): PublicKey | undefined => {
+  const keys = didDocument.publicKey || [];
+  return keys.find(propEq('type', keyType));
 };
